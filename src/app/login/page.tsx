@@ -6,7 +6,7 @@ import { Eye, EyeOff, Mail, Lock, UserPlus, LogIn, Loader2 } from 'lucide-react'
 import { useSupabaseConfig } from '@/lib/supabase-config-inject';
 import { getSupabaseBrowserClientWithRetry } from '@/lib/supabase-browser';
 
-const APP_ICON_URL = 'https://coze-coding-project.tos.coze.site/gen_project_icon/2026-08-18/7675260163577856051_1787038155.png?sign=4909126319-fe67b991a2-0-d574b699a484e4a443e8e848ff6b60a3072af5b0fca4f19ea1d18a1943d72997';
+const APP_ICON_URL = '/app-icon.png';
 const APP_NAME = '教育AI销售助手工作台';
 
 type Mode = 'login' | 'register';
