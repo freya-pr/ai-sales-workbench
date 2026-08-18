@@ -16,7 +16,7 @@ let tokenCache: { accessToken: string; expiresAt: number } | null = null;
 /**
  * 获取 access_token（带缓存，提前5分钟刷新）
  */
-export async function getAccessToken(): Promise<string> {
+export async function getWeComAccessToken(): Promise<string> {
   if (tokenCache && tokenCache.expiresAt > Date.now() + 300000) {
     return tokenCache.accessToken;
   }
@@ -35,6 +35,26 @@ export async function getAccessToken(): Promise<string> {
   };
 
   return data.access_token;
+}
+
+/** 兼容旧命名 */
+export const getAccessToken = getWeComAccessToken;
+
+/**
+ * 企业微信 API 请求封装
+ */
+export async function weComFetch(
+  url: string,
+  options: RequestInit = {}
+): Promise<any> {
+  const resp = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+  return resp.json();
 }
 
 /**
