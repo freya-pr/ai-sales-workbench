@@ -1,16 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "installCommand": "pnpm install --prod=false",
   "buildCommand": "pnpm next build",
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key",
-    "WECOM_CORP_ID": "@wecom-corp-id",
-    "WECOM_AGENT_ID": "@wecom-agent-id",
-    "WECOM_SECRET": "@wecom-secret",
-    "WECOM_TOKEN": "@wecom-token",
-    "WECOM_ENCODING_AES_KEY": "@wecom-encoding-aes-key"
-  }
+  "installCommand": "pnpm install --prod=false"
 }
