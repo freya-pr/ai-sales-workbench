@@ -6,6 +6,8 @@ import type { Customer } from '@/lib/mock-data';
 
 interface CustomerProfileProps {
   customer: Customer;
+  dbCustomer?: unknown;
+  dbTags?: unknown;
 }
 
 const tagClassMap: Record<string, string> = {
@@ -17,7 +19,7 @@ const tagClassMap: Record<string, string> = {
   green: 'bg-green-50 text-green-600 border-green-200',
 };
 
-export function CustomerProfile({ customer }: CustomerProfileProps) {
+export function CustomerProfile({ customer, dbCustomer: _dbCustomer, dbTags: _dbTags }: CustomerProfileProps) {
   const [openSummary, setOpenSummary] = useState<number>(0); // first open by default
 
   const steps = ['Day0', 'Day1', 'Day2', 'Day3'];

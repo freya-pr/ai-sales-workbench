@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Brain, Sparkles, BarChart3, MessageSquare, LogOut, Loader2, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ChatView } from './chat-view';
+import { ChatView } from './chat-view-real';
 import { InsightsView } from './tabs/ai-insights';
 import { CopilotView } from './tabs/ai-copilot';
 import { DashboardView } from './tabs/sales-dashboard';

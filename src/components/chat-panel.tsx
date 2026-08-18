@@ -7,9 +7,10 @@ import type { Customer } from '@/lib/mock-data';
 interface ChatPanelProps {
   customer: Customer;
   isAiMode: boolean;
+  onSendMessage?: (text: string) => void;
 }
 
-export function ChatPanel({ customer, isAiMode }: ChatPanelProps) {
+export function ChatPanel({ customer, isAiMode, onSendMessage }: ChatPanelProps) {
   const [messages, setMessages] = useState(customer.messages);
   const [suggestions, setSuggestions] = useState(customer.aiSuggestions);
   const [input, setInput] = useState('');
@@ -36,6 +37,7 @@ export function ChatPanel({ customer, isAiMode }: ChatPanelProps) {
       .padStart(2, '0')}`;
     setMessages((prev) => [...prev, { from: 'sales', text, time }]);
     setInput('');
+    if (onSendMessage) onSendMessage(text);
   };
 
   const handleSendSuggestion = (idx: number) => {
@@ -47,6 +49,7 @@ export function ChatPanel({ customer, isAiMode }: ChatPanelProps) {
       .toString()
       .padStart(2, '0')}`;
     setMessages((prev) => [...prev, { from: 'sales', text: s.text, time }]);
+    if (onSendMessage) onSendMessage(s.text);
   };
 
   const handleChange = (idx: number) => {
