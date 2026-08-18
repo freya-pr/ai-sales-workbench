@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Brain, Sparkles, BarChart3, MessageSquare, LogOut, Loader2, ChevronDown } from 'lucide-react';
+import { Brain, Sparkles, BarChart3, MessageSquare, LogOut, Loader2, ChevronDown, Share2, X, Copy, Check, QrCode } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ChatView } from './chat-view-real';
 import { InsightsView } from './tabs/ai-insights';
@@ -33,6 +33,26 @@ export default function Home() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const copyToClipboard = async (text: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(key);
+      setTimeout(() => setCopied(null), 1800);
+    } catch {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setCopied(key);
+      setTimeout(() => setCopied(null), 1800);
+    }
+  };
 
   useEffect(() => {
     if (configLoading) return;
@@ -120,7 +140,15 @@ export default function Home() {
           })}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowShareModal(true)}
+            className="flex items-center gap-1.5 rounded-full bg-white/[0.15] px-3 py-1.5 text-[12.5px] font-medium text-white transition hover:bg-white/25"
+            title="获取客户咨询入口"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">客户入口</span>
+          </button>
           <div className="relative cursor-pointer text-xl opacity-90">
             🔔
             {notificationCount > 0 && (
@@ -199,6 +227,15 @@ export default function Home() {
         {activeTab === 'dashboard' && <DashboardView />}
       </main>
 
+      {/* Share / Customer Entry Modal */}
+      {showShareModal && (
+        <ShareModal
+          onClose={() => setShowShareModal(false)}
+          onCopy={copyToClipboard}
+          copied={copied}
+        />
+      )}
+
       {/* Logout Confirmation Modal */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30" onClick={() => setShowLogoutConfirm(false)}>
@@ -229,6 +266,148 @@ export default function Home() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function getOrigin(): string {
+  if (typeof window === 'undefined') return '';
+  // 优先使用 Vercel 生产域名（如果当前是 GitHub Pages 预览也切到 Vercel）
+  const host = window.location.hostname;
+  if (host.includes('github.io') || host.includes('localhost') || host.includes('127.0.0.1')) {
+    return 'https://ai-sales-workbench-liart.vercel.app';
+  }
+  return window.location.origin;
+}
+
+function ShareModal({
+  onClose,
+  onCopy,
+  copied,
+}: {
+  onClose: () => void;
+  onCopy: (text: string, key: string) => void;
+  copied: string | null;
+}) {
+  const origin = getOrigin();
+  const landingLink = `${origin}/chat?ref=sales_share`;
+  const widgetLink = `${origin}/widget?auto=1&ref=sales_share`;
+  const embedCode = `<script>\n  window.CHAT_WIDGET_CONFIG = {\n    title: '课程顾问',\n    primaryColor: '#0891b2'\n  };\n</script>\n<script src="${origin}/chat-widget.js" async></script>`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=10&data=${encodeURIComponent(
+    landingLink
+  )}`;
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-[560px] rounded-2xl bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+          <div className="flex items-center gap-2">
+            <Share2 className="h-4 w-4 text-cyan-600" />
+            <h3 className="text-[15px] font-semibold text-slate-800">客户咨询入口</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="max-h-[70vh] space-y-4 overflow-y-auto px-5 py-4">
+          {/* QR Code */}
+          <div className="flex items-center gap-4 rounded-xl bg-gradient-to-br from-cyan-50 to-teal-50 p-4">
+            <div className="flex h-[130px] w-[130px] shrink-0 items-center justify-center rounded-lg bg-white p-2 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrUrl} alt="咨询入口二维码" className="h-full w-full" width={114} height={114} />
+            </div>
+            <div>
+              <div className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-slate-800">
+                <QrCode className="h-3.5 w-3.5 text-cyan-600" />
+                扫码直接咨询
+              </div>
+              <p className="text-[12px] leading-relaxed text-slate-500">
+                将二维码放到海报、朋友圈、公众号菜单或宣传页上，客户扫码即可发起对话，消息实时同步到工作台。
+              </p>
+            </div>
+          </div>
+
+          {/* Landing Link */}
+          <FieldRow label="独立咨询页链接" value={landingLink} onCopy={onCopy} copiedKey="landing" copied={copied} />
+
+          {/* Widget Link */}
+          <FieldRow label="直接聊天窗口链接" value={widgetLink} onCopy={onCopy} copiedKey="widget" copied={copied} />
+
+          {/* Embed Code */}
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="text-[12px] font-medium text-slate-600">嵌入到任意网站</label>
+              <button
+                onClick={() => onCopy(embedCode, 'embed')}
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-cyan-600 hover:bg-cyan-50"
+              >
+                {copied === 'embed' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                {copied === 'embed' ? '已复制' : '复制代码'}
+              </button>
+            </div>
+            <pre className="overflow-x-auto rounded-lg bg-slate-900 p-3 text-[11.5px] leading-relaxed text-slate-100">
+              <code>{embedCode}</code>
+            </pre>
+            <p className="mt-1.5 text-[11px] text-slate-400">
+              复制这段代码粘贴到官网 HTML 的 {'</body>'} 标签前即可。
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-amber-100 bg-amber-50/60 p-3 text-[11.5px] leading-relaxed text-amber-800">
+            <strong>工作方式：</strong>客户通过以上任一入口发起对话 → 消息实时推送到你的工作台 →
+            AI 自动接待并给出建议，你也可以随时人工接管。无需企业微信备案。
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FieldRow({
+  label,
+  value,
+  onCopy,
+  copiedKey,
+  copied,
+}: {
+  label: string;
+  value: string;
+  onCopy: (text: string, key: string) => void;
+  copiedKey: string;
+  copied: string | null;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-[12px] font-medium text-slate-600">{label}</label>
+      <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+        <code className="flex-1 truncate text-[12px] text-slate-700">{value}</code>
+        <button
+          onClick={() => onCopy(value, copiedKey)}
+          className="flex shrink-0 items-center gap-1 rounded-md bg-white px-2.5 py-1 text-[11px] font-medium text-cyan-600 ring-1 ring-slate-200 transition hover:bg-cyan-50"
+        >
+          {copied === copiedKey ? (
+            <>
+              <Check className="h-3 w-3" />
+              已复制
+            </>
+          ) : (
+            <>
+              <Copy className="h-3 w-3" />
+              复制
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }

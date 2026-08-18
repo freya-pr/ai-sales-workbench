@@ -1,30 +1,42 @@
 /**
  * AI 销售工作台 - 网页客服组件
- * 将此脚本嵌入任意网站即可启用在线客服功能
  *
- * 使用方法：
- * <script src="https://freya-pr.github.io/ai-sales-workbench/chat-widget.js"></script>
+ * 最简接入（复制到任意网站的 </body> 前）：
+ * <script src="https://ai-sales-workbench-liart.vercel.app/chat-widget.js"></script>
  *
  * 可选配置：
  * <script>
  *   window.CHAT_WIDGET_CONFIG = {
- *     title: '在线咨询',
- *     subtitle: 'AI顾问在线',
- *     primaryColor: '#0891b2'
+ *     url: 'https://ai-sales-workbench-liart.vercel.app/widget',
+ *     title: '课程顾问',
+ *     primaryColor: '#0891b2',
+ *     bottom: '20px',
+ *     right: '20px',
+ *     welcome: '您好，我是AI课程顾问~'
  *   };
  * </script>
+ * <script src="https://ai-sales-workbench-liart.vercel.app/chat-widget.js" async></script>
  */
 (function () {
   "use strict";
 
-  var config = window.CHAT_WIDGET_CONFIG || {};
-  var WIDGET_URL = config.url || "https://freya-pr.github.io/ai-sales-workbench/widget";
-  var BTN_COLOR = config.primaryColor || "#0891b2";
-  var BTN_SIZE = config.buttonSize || 56;
+  if (window.__CHAT_WIDGET_LOADED__) return;
+  window.__CHAT_WIDGET_LOADED__ = true;
 
-  // 创建 iframe
+  var config = window.CHAT_WIDGET_CONFIG || {};
+  // 默认指向 Vercel 部署（支持 API 和实时通信）
+  var DEFAULT_BASE = "https://ai-sales-workbench-liart.vercel.app";
+  var WIDGET_URL = config.url || DEFAULT_BASE + "/widget";
+  var BTN_COLOR = config.primaryColor || "#0891b2";
+  var BTN_SIZE = config.buttonSize || 58;
+  var TITLE = config.title || "在线咨询";
+  var SUBTITLE = config.subtitle || "AI顾问在线，通常1分钟内回复";
+
+  // 创建 iframe（默认 0 尺寸）
   var iframe = document.createElement("iframe");
   iframe.src = WIDGET_URL;
+  iframe.title = TITLE;
+  iframe.setAttribute("allow", "clipboard-write");
   iframe.style.cssText = [
     "position:fixed",
     "bottom:0",
@@ -33,16 +45,16 @@
     "height:0",
     "border:0",
     "z-index:2147483647",
-    "transition:none",
     "background:transparent",
+    "transition:none",
   ].join(";");
-  iframe.setAttribute("allow", "clipboard-write");
-  iframe.title = "在线客服";
 
   // 创建悬浮按钮
   var btn = document.createElement("button");
+  btn.type = "button";
+  btn.setAttribute("aria-label", TITLE);
   btn.innerHTML =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>';
+    '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>';
   btn.style.cssText = [
     "position:fixed",
     "bottom:" + (config.bottom || "20px"),
@@ -55,91 +67,158 @@
     "border:0",
     "cursor:pointer",
     "z-index:2147483646",
-    "box-shadow:0 4px 16px rgba(8,145,178,0.35)",
+    "box-shadow:0 8px 24px -4px " + BTN_COLOR + "66, 0 4px 12px rgba(0,0,0,0.15)",
     "display:flex",
     "align-items:center",
     "justify-content:center",
-    "transition:transform 0.2s ease, box-shadow 0.2s ease",
-  ].join(";");
+    "transition:transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, opacity .3s",
+    "opacity:0",
+    "transform:scale(.6)",
+  ].join("");
 
-  // 脉冲动画
+  // 脉冲圈
   var pulse = document.createElement("span");
+  pulse.setAttribute("aria-hidden", "true");
   pulse.style.cssText = [
     "position:absolute",
     "inset:0",
     "border-radius:50%",
-    "background:rgba(8,145,178,0.3)",
-    "animation:chatWidgetPulse 2s ease-out infinite",
+    "background:" + BTN_COLOR,
+    "opacity:.35",
+    "animation:chatWidgetPulse 2.2s ease-out infinite",
     "pointer-events:none",
   ].join(";");
   btn.appendChild(pulse);
 
+  // 未读徽章
+  var badge = document.createElement("span");
+  badge.style.cssText = [
+    "position:absolute",
+    "top:-4px",
+    "right:-4px",
+    "min-width:20px",
+    "height:20px",
+    "padding:0 6px",
+    "border-radius:10px",
+    "background:#ef4444",
+    "color:#fff",
+    "font:600 11px/20px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif",
+    "text-align:center",
+    "box-shadow:0 0 0 2px #fff",
+    "display:none",
+  ].join("");
+  btn.appendChild(badge);
+
   var isOpen = false;
+  var isReady = false;
+
+  function setOpen(open) {
+    isOpen = open;
+    if (open) {
+      iframe.style.cssText = [
+        "position:fixed",
+        "bottom:" + (config.bottom || "20px"),
+        "right:" + (config.right || "20px"),
+        "width:min(400px, calc(100vw - 24px))",
+        "height:min(620px, calc(100vh - 24px))",
+        "max-height:calc(100vh - 24px)",
+        "border:0",
+        "border-radius:16px",
+        "z-index:2147483647",
+        "background:#fff",
+        "box-shadow:0 20px 60px -10px rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.06)",
+        "transition:width .25s ease, height .25s ease, opacity .2s",
+      ].join(";");
+      btn.style.opacity = "0";
+      btn.style.transform = "scale(.6)";
+      btn.style.pointerEvents = "none";
+      pulse.style.display = "none";
+    } else {
+      iframe.style.cssText = [
+        "position:fixed",
+        "bottom:0",
+        "right:0",
+        "width:0",
+        "height:0",
+        "border:0",
+        "z-index:2147483647",
+        "background:transparent",
+        "transition:none",
+      ].join(";");
+      btn.style.opacity = "1";
+      btn.style.transform = "scale(1)";
+      btn.style.pointerEvents = "auto";
+      pulse.style.display = "";
+      badge.style.display = "none";
+    }
+  }
 
   function toggle() {
-    isOpen = !isOpen;
-    if (isOpen) {
-      // 展开窗口
-      var w = Math.min(400, window.innerWidth - 24);
-      var h = Math.min(560, window.innerHeight * 0.75);
-      iframe.style.width = w + "px";
-      iframe.style.height = h + "px";
-      iframe.style.right = (config.right || "16px");
-      iframe.style.bottom = (config.bottom || "16px");
-      iframe.style.borderRadius = "16px";
-      iframe.style.boxShadow = "0 12px 40px rgba(0,0,0,0.15)";
-      iframe.style.transition = "all 0.3s ease";
-      btn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
-      btn.style.transform = "scale(1)";
-      pulse.style.display = "none";
-      // 通知 iframe 打开
-      try {
-        iframe.contentWindow.postMessage({ type: "CHAT_WIDGET_OPEN" }, "*");
-      } catch (e) {}
-    } else {
-      // 收起
-      iframe.style.width = "0";
-      iframe.style.height = "0";
-      iframe.style.boxShadow = "none";
-      btn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>';
-      btn.appendChild(pulse);
-      pulse.style.display = "";
+    setOpen(!isOpen);
+    if (isOpen && isReady) {
+      iframe.contentWindow.postMessage({ type: "CHAT_WIDGET_OPEN" }, "*");
     }
   }
 
   btn.addEventListener("click", toggle);
-  btn.addEventListener("mouseenter", function () {
-    btn.style.transform = "scale(1.08)";
-    btn.style.boxShadow = "0 6px 20px rgba(8,145,178,0.45)";
-  });
-  btn.addEventListener("mouseleave", function () {
-    btn.style.transform = "scale(1)";
-    btn.style.boxShadow = "0 4px 16px rgba(8,145,178,0.35)";
-  });
 
-  // 监听 iframe 内的关闭消息
+  // 接收 iframe 消息
   window.addEventListener("message", function (e) {
-    if (e.data && e.data.type === "CHAT_WIDGET_CLOSE" && isOpen) {
-      toggle();
+    var d = e.data;
+    if (!d || typeof d !== "object") return;
+    if (d.type === "CHAT_WIDGET_READY") {
+      isReady = true;
+      return;
+    }
+    if (d.type === "CHAT_WIDGET_CLOSE") {
+      setOpen(false);
+      return;
+    }
+    if (d.type === "CHAT_WIDGET_UNREAD" && typeof d.count === "number") {
+      if (d.count > 0 && !isOpen) {
+        badge.textContent = d.count > 99 ? "99+" : String(d.count);
+        badge.style.display = "block";
+      } else {
+        badge.style.display = "none";
+      }
     }
   });
 
-  // 添加动画样式
-  var style = document.createElement("style");
-  style.textContent =
-    "@keyframes chatWidgetPulse{0%{transform:scale(1);opacity:0.7}70%{transform:scale(1.8);opacity:0}100%{transform:scale(1);opacity:0}}";
-  document.head.appendChild(style);
+  // 添加脉冲动画样式
+  var styleEl = document.createElement("style");
+  styleEl.textContent =
+    "@keyframes chatWidgetPulse{0%{transform:scale(1);opacity:.4}70%{transform:scale(1.8);opacity:0}100%{transform:scale(1.8);opacity:0}}";
+  document.head.appendChild(styleEl);
 
-  // 等待 DOM ready
+  // 延迟挂载按钮，等页面 load，避免抢占首屏资源
   function mount() {
+    if (!document.body) {
+      setTimeout(mount, 100);
+      return;
+    }
     document.body.appendChild(iframe);
     document.body.appendChild(btn);
+    // 入场动画
+    requestAnimationFrame(function () {
+      btn.style.opacity = "1";
+      btn.style.transform = "scale(1)";
+    });
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", mount);
   } else {
     mount();
   }
+
+  // 对外暴露 API
+  window.ChatWidget = {
+    open: function () {
+      setOpen(true);
+      if (isReady) iframe.contentWindow.postMessage({ type: "CHAT_WIDGET_OPEN" }, "*");
+    },
+    close: function () {
+      setOpen(false);
+    },
+    toggle: toggle,
+  };
 })();

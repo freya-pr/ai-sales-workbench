@@ -35,14 +35,29 @@ export function SupabaseConfigProvider({ children }: SupabaseConfigProviderProps
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // 优先使用构建时注入的公开环境变量（静态导出版本）
+    const builtinUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const builtinKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (builtinUrl && builtinKey) {
+      const cfg = { url: builtinUrl, anonKey: builtinKey };
+      setConfig(cfg);
+      (window as unknown as { __SUPABASE_CONFIG__: SupabaseConfig }).__SUPABASE_CONFIG__ = cfg;
+      window.dispatchEvent(new CustomEvent(SUPABASE_CONFIG_READY_EVENT, { detail: cfg }));
+      setIsLoading(false);
+      return;
+    }
+
+    // 兜底：从 API 获取（SSR/服务端渲染版本）
     const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-    fetch(`${basePath}/api/supabase-config`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
+    // 静态导出兜底：优先尝试 .json 后缀（GitHub Pages 对无扩展名文件可能返回 octet-stream）
+    const tryFetch = (url: string) =>
+      fetch(url, { headers: { Accept: 'application/json' } }).then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
-      })
+      });
+    tryFetch(`${basePath}/api/supabase-config.json`)
+      .catch(() => tryFetch(`${basePath}/api/supabase-config`))
       .then((data) => {
         if (data.url && data.anonKey) {
           setConfig(data);
@@ -56,9 +71,7 @@ export function SupabaseConfigProvider({ children }: SupabaseConfigProviderProps
         setError(err.message);
         console.error('Failed to load Supabase config:', err);
       })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .finally(() => setIsLoading(false));
   }, []);
 
   return (
