@@ -1,216 +1,160 @@
 'use client';
 
-import { useState } from 'react';
-import {
-  Search,
-  Filter,
-  Bot,
-  User,
-  Circle,
-} from 'lucide-react';
+import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Customer } from '@/lib/mock-data';
+import type { Customer, IntentLevel } from '@/lib/mock-data';
 
 interface ConversationListProps {
   customers: Customer[];
-  selectedId: string;
-  onSelect: (id: string) => void;
+  selectedId: number;
+  onSelect: (id: number) => void;
+  filter: 'all' | IntentLevel;
+  onFilterChange: (f: 'all' | IntentLevel) => void;
+  search: string;
+  onSearchChange: (s: string) => void;
+  counts: Record<string, number>;
 }
 
-type FilterType = 'all' | 'S' | 'A' | 'B' | 'unfollowed' | 'pending';
+const levelTagClass: Record<IntentLevel, string> = {
+  S: 'bg-red-50 text-red-500',
+  A: 'bg-orange-50 text-orange-500',
+  B: 'bg-blue-50 text-blue-500',
+};
+
+const avatarColors: Record<IntentLevel, string> = {
+  S: '#ef4444',
+  A: '#f97316',
+  B: '#3b82f6',
+};
 
 export function ConversationList({
   customers,
   selectedId,
   onSelect,
+  filter,
+  onFilterChange,
+  search,
+  onSearchChange,
+  counts,
 }: ConversationListProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<FilterType>('all');
-  const [mode, setMode] = useState<'all' | 'ai' | 'human'>('all');
-
-  const filteredCustomers = customers.filter((customer) => {
-    // Search filter
-    if (
-      searchQuery &&
-      !customer.name.includes(searchQuery) &&
-      !customer.phone.includes(searchQuery)
-    ) {
-      return false;
-    }
-
-    // Mode filter
-    if (mode === 'ai' && !customer.aiReception) return false;
-    if (mode === 'human' && customer.aiReception) return false;
-
-    // Type filter
-    if (filter === 'S' && customer.intentLevel !== 'S') return false;
-    if (filter === 'A' && customer.intentLevel !== 'A') return false;
-    if (filter === 'B' && customer.intentLevel !== 'B') return false;
-    if (filter === 'unfollowed' && customer.unreadCount > 0) return false;
-    if (filter === 'pending' && customer.intentLevel !== 'S') return false;
-
-    return true;
-  });
-
-  // Sort by urgency: unread count desc, then S > A > B
-  const sortedCustomers = [...filteredCustomers].sort((a, b) => {
-    if (b.unreadCount !== a.unreadCount) return b.unreadCount - a.unreadCount;
-    const levelOrder = { S: 0, A: 1, B: 2 };
-    return levelOrder[a.intentLevel] - levelOrder[b.intentLevel];
-  });
-
-  const intentColors: Record<string, string> = {
-    S: 'bg-red-500',
-    A: 'bg-amber-500',
-    B: 'bg-green-500',
-  };
-
-  const intentBgColors: Record<string, string> = {
-    S: 'bg-red-50 text-red-700 border-red-200',
-    A: 'bg-amber-50 text-amber-700 border-amber-200',
-    B: 'bg-green-50 text-green-700 border-green-200',
-  };
+  const filters: { key: 'all' | IntentLevel; label: string; count?: number }[] = [
+    { key: 'all', label: '全部', count: counts.all },
+    { key: 'S', label: 'S级' },
+    { key: 'A', label: 'A级' },
+    { key: 'B', label: 'B级' },
+  ];
 
   return (
-    <div className="flex w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white">
-      {/* Search & Filter Header */}
-      <div className="border-b border-slate-100 p-3">
-        <div className="relative mb-2">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+    <aside className="flex w-[300px] shrink-0 flex-col border-r border-gray-200 bg-white">
+      <div className="p-4 pb-0">
+        {/* Search */}
+        <div className="relative mb-3">
+          <Search className="absolute left-[11px] top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="搜索客户..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-[#0891b2] focus:outline-none focus:ring-1 focus:ring-[#0891b2]"
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="搜索客户姓名、手机号..."
+            className="w-full rounded-lg border-[1.5px] border-gray-200 bg-gray-50 py-[9px] pl-9 pr-3 text-[13px] outline-none transition-all focus:border-cyan-400 focus:bg-white focus:shadow-[0_0_0_3px_rgba(6,182,212,0.1)]"
           />
         </div>
 
-        {/* Mode Toggle */}
-        <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-0.5">
-          {[
-            { key: 'all' as const, label: '全部', icon: Circle },
-            { key: 'ai' as const, label: 'AI接待', icon: Bot },
-            { key: 'human' as const, label: '人工接待', icon: User },
-          ].map((item) => (
+        {/* Filter Tabs */}
+        <div className="mb-2 flex gap-1.5 border-b border-gray-100 pb-3">
+          {filters.map((f) => (
             <button
-              key={item.key}
-              onClick={() => setMode(item.key)}
+              key={f.key}
+              onClick={() => onFilterChange(f.key)}
               className={cn(
-                'flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all',
-                mode === item.key
-                  ? 'bg-white text-[#0891b2] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
+                'cursor-pointer rounded-[14px] px-3 py-1 text-xs font-medium transition-all',
+                filter === f.key
+                  ? 'bg-[#0891b2] text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               )}
             >
-              <item.icon className="h-3 w-3" />
-              {item.label}
+              {f.label}
+              {f.count !== undefined && (
+                <span
+                  className={cn(
+                    'ml-0.5 inline-block rounded-lg px-1.5 py-0 text-[10px]',
+                    filter === f.key ? 'bg-white/25' : 'bg-white/50'
+                  )}
+                >
+                  {f.count}
+                </span>
+              )}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-1 border-b border-slate-100 px-3 py-2">
-        <Filter className="mr-1 h-3 w-3 text-slate-400" />
-        {[
-          { key: 'all' as const, label: '全部' },
-          { key: 'S' as const, label: 'S级' },
-          { key: 'A' as const, label: 'A级' },
-          { key: 'B' as const, label: 'B级' },
-          { key: 'unfollowed' as const, label: '未跟进' },
-          { key: 'pending' as const, label: '待确认' },
-        ].map((item) => (
-          <button
-            key={item.key}
-            onClick={() => setFilter(item.key)}
-            className={cn(
-              'rounded-md px-2 py-1 text-xs font-medium transition-all',
-              filter === item.key
-                ? 'bg-[#0891b2] text-white'
-                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
-            )}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
       {/* Conversation List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {sortedCustomers.map((customer) => (
-          <button
-            key={customer.id}
-            onClick={() => onSelect(customer.id)}
+      <div className="flex-1 overflow-y-auto px-2 pb-2 custom-scrollbar">
+        {customers.map((c) => (
+          <div
+            key={c.id}
+            onClick={() => onSelect(c.id)}
             className={cn(
-              'flex w-full items-start gap-3 border-b border-slate-50 px-3 py-3 text-left transition-all hover:bg-slate-50',
-              selectedId === customer.id && 'bg-[#ecfeff] border-l-2 border-l-[#0891b2]'
+              'mb-0.5 flex cursor-pointer items-start gap-3 rounded-lg p-3 transition-all',
+              selectedId === c.id
+                ? 'border-l-3 border-l-[#0891b2] bg-[#ecfeff] pl-[9px]'
+                : 'hover:bg-gray-50'
             )}
           >
             {/* Avatar */}
-            <div className="relative shrink-0">
-              <div
-                className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium text-white',
-                  customer.intentLevel === 'S'
-                    ? 'bg-red-500'
-                    : customer.intentLevel === 'A'
-                    ? 'bg-amber-500'
-                    : 'bg-green-500'
-                )}
-              >
-                {customer.avatar}
-              </div>
-              {customer.aiReception && (
-                <div className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#8b5cf6] ring-2 ring-white">
-                  <Bot className="h-2.5 w-2.5 text-white" />
-                </div>
+            <div
+              className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[18px] font-semibold text-white"
+              style={{ background: c.color }}
+            >
+              {c.avatar}
+              {c.online && (
+                <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-green-500" />
               )}
             </div>
 
-            {/* Content */}
             <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-900">
-                  {customer.name}
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-800">
+                  {c.name}
                 </span>
-                <span className="text-xs text-slate-400">
-                  {customer.lastMessageTime}
+                <span className="text-[11px] text-gray-400">
+                  {c.lastActive}
                 </span>
               </div>
-              <p className="mt-0.5 truncate text-xs text-slate-500">
-                {customer.lastMessage}
+              <p className="mb-1.5 truncate text-[12.5px] leading-snug text-gray-500">
+                {c.preview}
               </p>
-              <div className="mt-1.5 flex items-center gap-1.5">
-                <span
-                  className={cn(
-                    'inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium',
-                    intentBgColors[customer.intentLevel]
-                  )}
-                >
-                  {customer.intentLevel}级
-                </span>
-                {customer.unreadCount > 0 && (
-                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white">
-                    {customer.unreadCount}
+              <div className="flex items-center justify-between">
+                <div className="flex gap-1">
+                  <span
+                    className={cn(
+                      'rounded px-1.5 py-0.5 text-[10px] font-semibold',
+                      levelTagClass[c.level]
+                    )}
+                  >
+                    {c.level}级
+                  </span>
+                  <span
+                    className={cn(
+                      'rounded-[10px] px-1.5 py-0.5 text-[10px] font-medium',
+                      c.aiStatus === 'pending'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-green-100 text-green-600'
+                    )}
+                  >
+                    {c.aiStatus === 'pending' ? '⏳ 待处理' : '✅ 已处理'}
+                  </span>
+                </div>
+                {c.unread > 0 && (
+                  <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-semibold text-white">
+                    {c.unread}
                   </span>
                 )}
               </div>
             </div>
-          </button>
+          </div>
         ))}
       </div>
-
-      {/* Footer Stats */}
-      <div className="border-t border-slate-100 px-3 py-2">
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <span>共 {sortedCustomers.length} 位客户</span>
-          <span>
-            AI接待 {customers.filter((c) => c.aiReception).length} / 人工接待{' '}
-            {customers.filter((c) => !c.aiReception).length}
-          </span>
-        </div>
-      </div>
-    </div>
+    </aside>
   );
 }

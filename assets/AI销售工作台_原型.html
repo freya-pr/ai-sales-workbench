@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 销售工作台 - 家庭教育规划</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #0891b2;
+  --primary-light: #06b6d4;
+  --primary-dark: #0e7490;
+  --primary-bg: #ecfeff;
+  --primary-bg2: #f0fdfa;
+  --accent: #14b8a6;
+  --accent-light: #5eead4;
+  --bg: #f8fafc;
+  --white: #ffffff;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --red: #ef4444;
+  --orange: #f97316;
+  --green: #22c55e;
+  --purple: #8b5cf6;
+  --yellow: #eab308;
+  --s-color: #ef4444;
+  --a-color: #f97316;
+  --b-color: #3b82f6;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  color: var(--gray-800);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ===== Top Navigation ===== */
+.top-nav {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--accent) 100%);
+  color: white;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(8,145,178,0.3);
+}
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  backdrop-filter: blur(4px);
+}
+.logo-text {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.logo-sub {
+  font-size: 11px;
+  opacity: 0.75;
+  margin-left: 8px;
+  font-weight: 400;
+}
+.nav-tabs {
+  display: flex;
+  gap: 2px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 3px;
+}
+.nav-tab {
+  padding: 7px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all 0.2s;
+  color: rgba(255,255,255,0.7);
+  user-select: none;
+}
+.nav-tab:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+.nav-tab.active {
+  background: rgba(255,255,255,0.22);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: all 0.25s;
+  user-select: none;
+}
+.mode-toggle:hover {
+  background: rgba(255,255,255,0.2);
+}
+.mode-toggle .toggle-dot {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.3);
+  position: relative;
+  transition: all 0.3s;
+}
+.mode-toggle .toggle-dot::after {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: all 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.mode-toggle.ai-mode .toggle-dot {
+  background: var(--accent-light);
+}
+.mode-toggle.ai-mode .toggle-dot::after {
+  left: 18px;
+  background: var(--primary-dark);
+}
+.mode-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  min-width: 48px;
+  text-align: center;
+}
+.notification-badge {
+  position: relative;
+  cursor: pointer;
+  font-size: 20px;
+  opacity: 0.9;
+}
+.notification-badge .badge-count {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: var(--red);
+  color: white;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* ===== Main Layout ===== */
+.main-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ===== Left Panel ===== */
+.left-panel {
+  width: 300px;
+  background: var(--white);
+  border-right: 1px solid var(--gray-200);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.panel-header {
+  padding: 16px 16px 0;
+}
+.search-box {
+  position: relative;
+  margin-bottom: 12px;
+}
+.search-box input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s;
+  background: var(--gray-50);
+}
+.search-box input:focus {
+  border-color: var(--primary-light);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+}
+.search-box .search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray-400);
+  font-size: 14px;
+}
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--gray-100);
+}
+.filter-tab {
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  font-weight: 500;
+  user-select: none;
+}
+.filter-tab:hover { background: var(--gray-200); }
+.filter-tab.active {
+  background: var(--primary);
+  color: white;
+}
+.filter-tab .count {
+  display: inline-block;
+  background: rgba(255,255,255,0.3);
+  padding: 0 5px;
+  border-radius: 8px;
+  font-size: 10px;
+  margin-left: 3px;
+}
+.filter-tab.active .count {
+  background: rgba(255,255,255,0.25);
+}
+.conversation-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px;
+}
+.conversation-list::-webkit-scrollbar { width: 4px; }
+.conversation-list::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
+.conv-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  margin-bottom: 2px;
+}
+.conv-card:hover {
+  background: var(--gray-50);
+}
+.conv-card.active {
+  background: var(--primary-bg);
+  border-left: 3px solid var(--primary);
+  padding-left: 9px;
+}
+.conv-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  position: relative;
+  color: white;
+  font-weight: 600;
+}
+.conv-avatar .online-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--green);
+  border: 2px solid white;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+.conv-info {
+  flex: 1;
+  min-width: 0;
+}
+.conv-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.conv-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+.conv-time {
+  font-size: 11px;
+  color: var(--gray-400);
+}
+.conv-preview {
+  font-size: 12.5px;
+  color: var(--gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.conv-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.conv-tags {
+  display: flex;
+  gap: 4px;
+}
+.conv-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.conv-tag.s-tag { background: #fef2f2; color: var(--s-color); }
+.conv-tag.a-tag { background: #fff7ed; color: var(--a-color); }
+.conv-tag.b-tag { background: #eff6ff; color: var(--b-color); }
+.unread-badge {
+  min-width: 18px;
+  height: 18px;
+  background: var(--red);
+  color: white;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+.ai-status {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.ai-status.pending { background: #fef3c7; color: #d97706; }
+.ai-status.done { background: #dcfce7; color: #16a34a; }
+
+/* ===== Middle Panel ===== */
+.middle-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--gray-50);
+  min-width: 0;
+}
+.chat-header {
+  background: var(--white);
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.chat-customer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.chat-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 15px;
+}
+.chat-name-group h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+.chat-name-group span {
+  font-size: 11.5px;
+  color: var(--gray-400);
+}
+.chat-actions {
+  display: flex;
+  gap: 8px;
+}
+.chat-action-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  background: white;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--gray-600);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.chat-action-btn:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+  background: var(--primary-bg);
+}
+.chat-action-btn.primary {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.chat-action-btn.primary:hover {
+  background: var(--primary-dark);
+}
+
+/* Chat Messages */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+.chat-messages::-webkit-scrollbar { width: 5px; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
+.message-group {
+  margin-bottom: 20px;
+}
+.message-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+.message-row.customer { justify-content: flex-start; }
+.message-row.sales { justify-content: flex-end; }
+.msg-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: white;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+.msg-bubble {
+  max-width: 65%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  position: relative;
+}
+.message-row.customer .msg-bubble {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-top-left-radius: 4px;
+}
+.message-row.sales .msg-bubble {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  border-top-right-radius: 4px;
+}
+.msg-time {
+  font-size: 10.5px;
+  color: var(--gray-400);
+  margin-top: 4px;
+  text-align: right;
+}
+.message-row.customer .msg-time { text-align: left; }
+.date-divider {
+  text-align: center;
+  margin: 16px 0;
+  position: relative;
+}
+.date-divider span {
+  background: var(--gray-50);
+  padding: 0 12px;
+  font-size: 11.5px;
+  color: var(--gray-400);
+  position: relative;
+  z-index: 1;
+}
+.date-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--gray-200);
+}
+
+/* AI Suggestion Area */
+.ai-suggestion-area {
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+  padding: 0;
+  flex-shrink: 0;
+  transition: all 0.3s;
+  overflow: hidden;
+}
+.ai-suggestion-area.hidden {
+  max-height: 0;
+  padding: 0;
+  border: none;
+}
+.ai-suggestion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: linear-gradient(90deg, var(--primary-bg), var(--primary-bg2));
+  border-bottom: 1px solid var(--gray-100);
+}
+.ai-suggestion-header .ai-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+.ai-suggestion-header .ai-label .sparkle { font-size: 15px; }
+.ai-suggestion-body {
+  padding: 12px 20px;
+}
+.ai-suggestion-card {
+  background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+  border: 1px solid #a5f3fc;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+.ai-suggestion-text {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--gray-700);
+  margin-bottom: 10px;
+}
+.ai-suggestion-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.confidence-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.confidence-tag.high { background: #dcfce7; color: #16a34a; }
+.confidence-tag.medium { background: #fef3c7; color: #d97706; }
+.ai-btn-group {
+  display: flex;
+  gap: 6px;
+}
+.ai-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-weight: 500;
+}
+.ai-btn.change {
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+.ai-btn.change:hover { background: var(--gray-200); }
+.ai-btn.send {
+  background: var(--primary);
+  color: white;
+}
+.ai-btn.send:hover { background: var(--primary-dark); }
+
+/* Input Area */
+.input-area {
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+  padding: 12px 20px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.input-tools {
+  display: flex;
+  gap: 6px;
+  padding-bottom: 6px;
+}
+.input-tool-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: var(--gray-100);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: var(--gray-500);
+}
+.input-tool-btn:hover {
+  background: var(--primary-bg);
+  color: var(--primary);
+}
+.input-box {
+  flex: 1;
+  position: relative;
+}
+.input-box textarea {
+  width: 100%;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 13.5px;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.5;
+  height: 40px;
+  transition: all 0.2s;
+}
+.input-box textarea:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.1);
+}
+.send-btn {
+  padding: 9px 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  height: 40px;
+}
+.send-btn:hover { background: var(--primary-dark); }
+
+/* ===== Right Panel ===== */
+.right-panel {
+  width: 330px;
+  background: var(--white);
+  border-left: 1px solid var(--gray-200);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.right-panel::-webkit-scrollbar { width: 4px; }
+.right-panel::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
+.profile-section {
+  padding: 20px 16px;
+  border-bottom: 1px solid var(--gray-100);
+}
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 22px;
+  box-shadow: var(--shadow-md);
+}
+.profile-name {
+  font-size: 17px;
+  font-weight: 700;
+}
+.profile-subtitle {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-top: 2px;
+}
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.tag-capsule {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: default;
+  transition: all 0.2s;
+}
+.tag-capsule:hover { transform: scale(1.05); }
+.tag-capsule.s { background: #fef2f2; color: var(--s-color); border: 1px solid #fecaca; }
+.tag-capsule.a { background: #fff7ed; color: var(--a-color); border: 1px solid #fed7aa; }
+.tag-capsule.info { background: var(--primary-bg); color: var(--primary-dark); border: 1px solid #a5f3fc; }
+.tag-capsule.purple { background: #f5f3ff; color: var(--purple); border: 1px solid #ddd6fe; }
+.tag-capsule.green { background: #f0fdf4; color: var(--green); border: 1px solid #bbf7d0; }
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.info-item {
+  background: var(--gray-50);
+  padding: 10px 12px;
+  border-radius: var(--radius);
+}
+.info-item .label {
+  font-size: 11px;
+  color: var(--gray-400);
+  margin-bottom: 3px;
+}
+.info-item .value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+.info-item.full { grid-column: 1 / -1; }
+
+/* Course Progress */
+.progress-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--gray-100);
+}
+.section-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 8px;
+}
+.progress-step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+.progress-step .step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--gray-200);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: white;
+  font-weight: 600;
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s;
+}
+.progress-step.completed .step-dot {
+  background: var(--primary);
+}
+.progress-step.current .step-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(20,184,166,0.2);
+}
+.progress-step .step-label {
+  font-size: 10px;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+.progress-step.completed .step-label,
+.progress-step.current .step-label { color: var(--primary-dark); font-weight: 600; }
+.progress-line {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 3px;
+  background: var(--gray-200);
+  position: relative;
+  top: -12px;
+}
+.progress-line.done { background: var(--primary); }
+
+.checkin-stats {
+  display: flex;
+  gap: 8px;
+}
+.checkin-stat {
+  flex: 1;
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  padding: 8px;
+  text-align: center;
+}
+.checkin-stat .stat-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+.checkin-stat .stat-label {
+  font-size: 10px;
+  color: var(--gray-500);
+  margin-top: 2px;
+}
+
+/* Daily Summary */
+.summary-section {
+  padding: 16px;
+}
+.summary-card {
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  overflow: hidden;
+  border: 1px solid var(--gray-100);
+  transition: all 0.2s;
+}
+.summary-card:hover { border-color: var(--gray-200); }
+.summary-header {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.summary-header:hover { background: var(--gray-100); }
+.summary-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.summary-arrow {
+  font-size: 12px;
+  color: var(--gray-400);
+  transition: transform 0.25s;
+}
+.summary-card.open .summary-arrow { transform: rotate(180deg); }
+.summary-body {
+  padding: 0 14px 12px;
+  display: none;
+}
+.summary-card.open .summary-body { display: block; }
+.summary-text {
+  font-size: 12.5px;
+  color: var(--gray-600);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.followup-tip {
+  background: linear-gradient(135deg, var(--primary-bg), var(--primary-bg2));
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--primary-dark);
+  line-height: 1.5;
+  border-left: 3px solid var(--primary);
+}
+.followup-tip strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== Tab Content Views ===== */
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+}
+.tab-content.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dashboard View */
+.dashboard-view {
+  padding: 24px;
+  overflow-y: auto;
+}
+.dashboard-view h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--gray-800);
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-100);
+}
+.stat-card .stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--gray-800);
+}
+.stat-card .stat-label {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin-top: 2px;
+}
+.stat-card .stat-change {
+  font-size: 12px;
+  margin-top: 8px;
+  font-weight: 600;
+}
+.stat-card .stat-change.up { color: var(--green); }
+.stat-card .stat-change.down { color: var(--red); }
+.chart-placeholder {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-100);
+  margin-bottom: 20px;
+}
+.chart-placeholder h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 180px;
+  padding: 0 10px;
+}
+.bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.bar-fill {
+  width: 100%;
+  max-width: 40px;
+  border-radius: 6px 6px 0 0;
+  transition: height 0.5s ease;
+}
+.bar-label {
+  font-size: 11px;
+  color: var(--gray-500);
+}
+.bar-value {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-700);
+}
+
+/* AI Insights View */
+.insights-view {
+  padding: 24px;
+  overflow-y: auto;
+}
+.insight-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-100);
+  margin-bottom: 16px;
+}
+.insight-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.insight-list {
+  list-style: none;
+}
+.insight-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: 13.5px;
+  color: var(--gray-600);
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.insight-list li:last-child { border-bottom: none; }
+.insight-list .bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+.priority-tag {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.priority-tag.urgent { background: #fef2f2; color: var(--red); }
+.priority-tag.normal { background: #fef3c7; color: #d97706; }
+
+/* AI Copilot View */
+.copilot-view {
+  padding: 24px;
+  overflow-y: auto;
+}
+.copilot-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-100);
+  margin-bottom: 16px;
+}
+.copilot-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.script-item {
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+  border-left: 3px solid var(--primary);
+}
+.script-item .scenario {
+  font-size: 12px;
+  color: var(--primary-dark);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.script-item .text {
+  font-size: 13px;
+  color: var(--gray-600);
+  line-height: 1.6;
+}
+.script-item .copy-btn {
+  margin-top: 8px;
+  padding: 4px 12px;
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+  border: none;
+  border-radius: 6px;
+  font-size: 11.5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.script-item .copy-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.3s ease; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .right-panel { width: 280px; }
+  .left-panel { width: 260px; }
+}
+@media (max-width: 960px) {
+  .right-panel { display: none; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  .left-panel { width: 72px; }
+  .conv-info, .filter-tabs, .panel-header { display: none; }
+  .conv-card { padding: 8px; justify-content: center; }
+  .nav-tabs { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top Navigation -->
+<div class="top-nav">
+  <div class="nav-left">
+    <div class="logo-icon">🎯</div>
+    <span class="logo-text">AI 销售工作台</span>
+    <span class="logo-sub">家庭教育规划</span>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab" data-tab="insights" onclick="switchTab('insights')">AI 洞察</div>
+    <div class="nav-tab active" data-tab="chat" onclick="switchTab('chat')">客户画像</div>
+    <div class="nav-tab" data-tab="copilot" onclick="switchTab('copilot')">AI 副驾</div>
+    <div class="nav-tab" data-tab="dashboard" onclick="switchTab('dashboard')">销售看板</div>
+  </div>
+  <div class="nav-right">
+    <div class="notification-badge">
+      🔔<span class="badge-count">5</span>
+    </div>
+    <div class="mode-toggle ai-mode" id="modeToggle" onclick="toggleMode()">
+      <span class="mode-label" id="modeLabel">AI 模式</span>
+      <div class="toggle-dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Container -->
+<div class="main-container">
+
+  <!-- Chat Tab (Default) -->
+  <div class="tab-content active" id="tab-chat" style="display:flex;flex-direction:row;flex:1;">
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <div class="panel-header">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="搜索客户姓名、手机号..." id="searchInput" oninput="filterConversations()">
+        </div>
+        <div class="filter-tabs">
+          <div class="filter-tab active" data-filter="all" onclick="setFilter('all')">全部<span class="count">4</span></div>
+          <div class="filter-tab" data-filter="S" onclick="setFilter('S')">S级</div>
+          <div class="filter-tab" data-filter="A" onclick="setFilter('A')">A级</div>
+          <div class="filter-tab" data-filter="B" onclick="setFilter('B')">B级</div>
+        </div>
+      </div>
+      <div class="conversation-list" id="convList"></div>
+    </div>
+
+    <!-- Middle Panel -->
+    <div class="middle-panel" id="middlePanel">
+      <div class="chat-header" id="chatHeader"></div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="ai-suggestion-area" id="aiSuggestionArea">
+        <div class="ai-suggestion-header">
+          <div class="ai-label"><span class="sparkle">✨</span> AI 智能回复建议</div>
+          <span style="font-size:11px;color:var(--gray-400);">基于客户画像生成</span>
+        </div>
+        <div class="ai-suggestion-body" id="aiSuggestionBody"></div>
+      </div>
+      <div class="input-area">
+        <div class="input-tools">
+          <button class="input-tool-btn" title="图片">🖼</button>
+          <button class="input-tool-btn" title="文件">📎</button>
+          <button class="input-tool-btn" title="快捷回复">⚡</button>
+        </div>
+        <div class="input-box">
+          <textarea placeholder="输入消息... (Enter 发送)" id="messageInput" onkeydown="handleKeyDown(event)"></textarea>
+        </div>
+        <button class="send-btn" onclick="sendMessage()">发送</button>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel" id="rightPanel"></div>
+  </div>
+
+  <!-- Dashboard Tab -->
+  <div class="tab-content" id="tab-dashboard">
+    <div class="dashboard-view" id="dashboardView"></div>
+  </div>
+
+  <!-- Insights Tab -->
+  <div class="tab-content" id="tab-insights">
+    <div class="insights-view" id="insightsView"></div>
+  </div>
+
+  <!-- Copilot Tab -->
+  <div class="tab-content" id="tab-copilot">
+    <div class="copilot-view" id="copilotView"></div>
+  </div>
+
+</div>
+
+<script>
+// ===== Data =====
+const customers = [
+  {
+    id: 1, name: '张雨萱妈妈', avatar: '张', color: '#0891b2',
+    level: 'S', childAge: '4岁', childName: '小萱萱',
+    tags: ['#S级', '#3-6岁', '#专注力', '#高意向'],
+    tagClasses: ['s', 'info', 'purple', 'green'],
+    decisionMaker: '妈妈（主要决策人）',
+    budget: '8,000-15,000元/年',
+    source: '抖音直播',
+    online: true,
+    lastActive: '3分钟前',
+    unread: 3,
+    aiStatus: 'pending',
+    preview: '老师，我想问下专注力课程具体怎么安排的？',
+    courseProgress: 2,
+    checkinDays: 3, totalDays: 4, streakDays: 3,
+    messages: [
+      { type: 'date', text: '今天' },
+      { from: 'customer', text: '老师你好，我是通过抖音直播了解到咱们课程的', time: '14:20' },
+      { from: 'sales', text: '雨萱妈妈您好！感谢您的关注～请问宝贝现在多大了呢？', time: '14:22' },
+      { from: 'customer', text: '我家小萱萱4岁了，上幼儿园中班', time: '14:23' },
+      { from: 'sales', text: '4岁正好是专注力培养的黄金期！我们有一套专门针对3-6岁的专注力训练课程，通过游戏化教学帮助孩子提升注意力。', time: '14:25' },
+      { from: 'customer', text: '听起来不错，老师能具体介绍一下吗？另外我家孩子特别坐不住，玩玩具也是三分钟热度', time: '14:28' },
+      { from: 'sales', text: '理解您的担心！其实4岁孩子注意力集中时间在10-15分钟是正常的。我们的课程正是针对这个特点设计的，每节课15分钟，循序渐进。很多学员家长反馈，坚持2-3周就能看到明显变化。', time: '14:30' },
+      { from: 'customer', text: '老师，我想问下专注力课程具体怎么安排的？', time: '14:35' },
+    ],
+    aiSuggestions: [
+      { text: '雨萱妈妈，我们专注力课程分为三个阶段：\n\n🎯 第一阶段（Day1-Day7）：趣味感知期\n通过互动游戏和视觉训练，让孩子在快乐中建立专注习惯\n\n🧩 第二阶段（Day8-Day14）：能力建构期\n引入听觉+触觉多感官训练，系统性提升注意力时长\n\n🌟 第三阶段（Day15-Day21）：巩固提升期\n结合生活场景练习，让专注力迁移到日常学习中\n\n现在报名可以享受首阶段体验价99元，要不要先给小萱萱预约一个体验名额？', confidence: 92, level: 'high' },
+      { text: '萱萱妈妈，4岁正是培养专注力的最佳窗口期！我先给您发一份我们的课程大纲和学员案例，您看看是否适合小萱萱？\n\n另外我们有一个3天的免费体验营，很多家长反馈孩子参与后变化很大，我帮您预约明天的名额好吗？', confidence: 86, level: 'high' },
+    ],
+    dailySummaries: [
+      { date: '今天', summary: '客户通过抖音直播了解课程，主动询问专注力课程详情。孩子4岁中班，注意力集中时间短是主要痛点。决策人为妈妈，预算充足，意向度很高。', suggestion: '重点推送课程大纲+学员案例，趁热邀约3天体验营，利用"黄金窗口期"话术强化紧迫感。' },
+      { date: '昨天', summary: '客户首次接触，填写了抖音直播间留资表单，关注专注力方向。', suggestion: '已建立初步信任，今日重点转化为体验营学员。' },
+    ]
+  },
+  {
+    id: 2, name: '李明轩爸爸', avatar: '李', color: '#8b5cf6',
+    level: 'A', childAge: '7岁', childName: '轩轩',
+    tags: ['#A级', '#幼小衔接', '#逻辑思维', '#价格敏感'],
+    tagClasses: ['a', 'info', 'purple', 'info'],
+    decisionMaker: '爸爸+妈妈（共同决策）',
+    budget: '3,000-8,000元/年',
+    source: '微信公众号',
+    online: true,
+    lastActive: '15分钟前',
+    unread: 1,
+    aiStatus: 'done',
+    preview: '好的，我再考虑一下',
+    courseProgress: 3,
+    checkinDays: 5, totalDays: 7, streakDays: 2,
+    messages: [
+      { type: 'date', text: '今天' },
+      { from: 'customer', text: '老师你好，我看了你发的课程介绍，幼小衔接的逻辑思维课看着挺好的', time: '10:15' },
+      { from: 'sales', text: '明轩爸爸好！是的，逻辑思维课是我们最受欢迎的课程之一，特别适合即将上小学的孩子～轩轩今年几岁了？', time: '10:18' },
+      { from: 'customer', text: '7岁了，今年9月上小学', time: '10:19' },
+      { from: 'sales', text: '那时间刚刚好！很多家长都在这个阶段给孩子报名，帮助孩子顺利过渡。我们的逻辑思维课涵盖数感培养、图形推理、规律发现等核心能力。', time: '10:22' },
+      { from: 'customer', text: '价格怎么样？', time: '10:30' },
+      { from: 'sales', text: '全年课程原价6980元，现在春季活动价4980元，包含24节系统课+每日练习+老师1对1点评。平均下来一节课不到210元，性价比很高～', time: '10:32' },
+      { from: 'customer', text: '好的，我再考虑一下', time: '10:45' },
+    ],
+    aiSuggestions: [
+      { text: '明轩爸爸理解您的考虑！其实9月就要上小学了，现在开始准备时间是刚刚好的。\n\n跟您分享一个数据：我们的学员中，85%的孩子在课程结束后，数学思维测试成绩提升了30%以上。\n\n另外我这边有一个限时福利：本周报名可以额外赠送价值399元的《幼小衔接家长指导手册》，帮助您在家也能配合训练。这个名额只剩3个了，要不要先锁定一个？', confidence: 88, level: 'high' },
+    ],
+    dailySummaries: [
+      { date: '今天', summary: '客户主动询问逻辑思维课详情，对课程内容感兴趣，但对价格表现出犹豫。决策为父母共同决策，需要给爸爸足够的"说服素材"去和妈妈商量。', suggestion: '提供学员效果数据+限时优惠制造紧迫感，同时发一份课程试听链接降低决策门槛。建议今晚8点左右跟进（爸爸下班后）。' },
+      { date: '昨天', summary: '通过公众号文章留资，关注幼小衔接方向。', suggestion: '初次接触，重点建立专业形象。' },
+      { date: '前天', summary: '参加了逻辑思维公开课体验，反馈积极。', suggestion: '趁热度进行一对一深度沟通。' },
+    ]
+  },
+  {
+    id: 3, name: '王诗涵妈妈', avatar: '王', color: '#f97316',
+    level: 'S', childAge: '5岁', childName: '诗诗',
+    tags: ['#S级', '#3-6岁', '#英语启蒙', '#已购课'],
+    tagClasses: ['s', 'info', 'purple', 'green'],
+    decisionMaker: '妈妈',
+    budget: '15,000-25,000元/年',
+    source: '老学员推荐',
+    online: false,
+    lastActive: '1小时前',
+    unread: 0,
+    aiStatus: 'done',
+    preview: '好的，那我再看看英语进阶课',
+    courseProgress: 4,
+    checkinDays: 12, totalDays: 14, streakDays: 7,
+    messages: [
+      { type: 'date', text: '今天' },
+      { from: 'sales', text: '诗涵妈妈好！诗诗最近的英语启蒙课打卡非常棒，已经连续7天了！🎉', time: '09:00' },
+      { from: 'customer', text: '谢谢老师！诗诗现在每天主动要学英语，变化确实很大', time: '09:15' },
+      { from: 'sales', text: '太好了！这说明诗诗的语言敏感期抓得非常好。5岁是英语启蒙的黄金阶段，现在打好基础，以后学起来会轻松很多～', time: '09:18' },
+      { from: 'customer', text: '对了老师，我听说你们有个英语进阶课程，适合学完启蒙之后的孩子吗？', time: '09:25' },
+      { from: 'sales', text: '有的！我们的英语进阶课程正好适合完成启蒙阶段的孩子，内容涵盖自然拼读、绘本阅读和口语表达，帮助孩子在启蒙基础上进一步拓展。诗诗目前的表现完全可以进入了！', time: '09:28' },
+      { from: 'customer', text: '好的，那我再看看英语进阶课', time: '09:35' },
+    ],
+    aiSuggestions: [
+      { text: '诗涵妈妈，给您发一下英语进阶课的详细安排：\n\n📚 课程结构：36节系统课 + 每日绘本打卡\n🎯 核心内容：自然拼读 → 分级绘本阅读 → 情景口语\n👩\u200d🏫 教学特色：外教录播+中教直播双师模式\n💰 老学员专属价：5980元（原价7980元）\n\n诗诗启蒙阶段表现这么好，进阶课对她来说正好衔接！而且作为老学员，我还额外帮您申请了价值299元的英文绘本礼包～', confidence: 94, level: 'high' },
+    ],
+    dailySummaries: [
+      { date: '今天', summary: '已购课老学员，打卡情况优秀（连续7天）。主动询问英语进阶课程，有明确的二次购买意向。属于高价值客户。', suggestion: '快速推送进阶课详情+老学员专属优惠，利用家长对课程的认可度促成续费/升级。' },
+      { date: '近7天', summary: '持续保持良好打卡习惯，家长满意度高，曾主动推荐2位新用户。', suggestion: '维护良好关系，适时推动进阶课升级。' },
+    ]
+  },
+  {
+    id: 4, name: '陈浩宇爸爸', avatar: '陈', color: '#22c55e',
+    level: 'B', childAge: '6岁', childName: '浩浩',
+    tags: ['#B级', '#幼小衔接', '#感统训练', '#观望中'],
+    tagClasses: ['a', 'info', 'purple', 'info'],
+    decisionMaker: '妈妈（爸爸配合）',
+    budget: '5,000元以下/年',
+    source: '小红书',
+    online: false,
+    lastActive: '昨天',
+    unread: 0,
+    aiStatus: 'pending',
+    preview: '嗯嗯，了解了解',
+    courseProgress: 0,
+    checkinDays: 0, totalDays: 3, streakDays: 0,
+    messages: [
+      { type: 'date', text: '昨天' },
+      { from: 'sales', text: '浩宇爸爸好！看到您在小红书关注了我们的感统训练内容，请问浩浩有什么具体表现让您关注这方面的呢？', time: '16:00' },
+      { from: 'customer', text: '嗯，就是感觉孩子有时候走路会摔跤，平衡感不太好', time: '16:20' },
+      { from: 'sales', text: '了解了！6岁是感统发展的关键期，平衡感不足确实会影响孩子的运动协调和注意力。我们有专门的感统训练课程，在家就能做，每天15分钟就能看到改善。', time: '16:25' },
+      { from: 'customer', text: '嗯嗯，了解了解', time: '16:40' },
+    ],
+    aiSuggestions: [
+      { text: '浩宇爸爸，我发一篇我们整理的《6岁感统发展评估清单》给您，您可以先对照看看浩浩的情况。\n\n很多家长和您的感受一样，孩子走路摔跤、系扣子困难这些其实都是感统失调的表现。如果不及时干预，上小学后可能会影响书写和体育成绩。\n\n我们有一个免费的3天感统体验营，在家就能带孩子做，您要不要试试？', confidence: 78, level: 'medium' },
+    ],
+    dailySummaries: [
+      { date: '昨天', summary: '小红书留资用户，首次沟通。关注感统训练，但回复简短，意向度一般。主要决策人是妈妈，爸爸初步了解中。', suggestion: '发送感统评估清单作为价值输出，邀约免费体验营。如爸爸犹豫，询问是否可以拉妈妈进群了解。' },
+    ]
+  }
+];
+
+let currentCustomerId = 1;
+let currentFilter = 'all';
+let isAiMode = true;
+
+// ===== Initialize =====
+function init() {
+  renderConversationList();
+  selectCustomer(1);
+  renderDashboard();
+  renderInsights();
+  renderCopilot();
+}
+
+// ===== Conversation List =====
+function renderConversationList() {
+  const list = document.getElementById('convList');
+  const searchVal = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = customers.filter(c => {
+    if (currentFilter !== 'all' && c.level !== currentFilter) return false;
+    if (searchVal && !c.name.toLowerCase().includes(searchVal)) return false;
+    return true;
+  });
+  list.innerHTML = filtered.map(c => `
+    <div class="conv-card ${c.id === currentCustomerId ? 'active' : ''}" onclick="selectCustomer(${c.id})">
+      <div class="conv-avatar" style="background:${c.color}">
+        ${c.avatar}
+        ${c.online ? '<div class="online-dot"></div>' : ''}
+      </div>
+      <div class="conv-info">
+        <div class="conv-top">
+          <span class="conv-name">${c.name}</span>
+          <span class="conv-time">${c.lastActive}</span>
+        </div>
+        <div class="conv-preview">${c.preview}</div>
+        <div class="conv-bottom">
+          <div class="conv-tags">
+            <span class="conv-tag ${c.level === 'S' ? 's-tag' : c.level === 'A' ? 'a-tag' : 'b-tag'}">${c.level}级</span>
+            <span class="ai-status ${c.aiStatus === 'pending' ? 'pending' : 'done'}">${c.aiStatus === 'pending' ? '⏳ 待处理' : '✅ 已处理'}</span>
+          </div>
+          ${c.unread > 0 ? `<div class="unread-badge">${c.unread}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== Select Customer =====
+function selectCustomer(id) {
+  currentCustomerId = id;
+  const c = customers.find(x => x.id === id);
+  renderConversationList();
+  renderChatHeader(c);
+  renderMessages(c);
+  renderAiSuggestions(c);
+  renderProfile(c);
+}
+
+// ===== Chat Header =====
+function renderChatHeader(c) {
+  document.getElementById('chatHeader').innerHTML = `
+    <div class="chat-customer-info">
+      <div class="chat-avatar" style="background:${c.color}">${c.avatar}</div>
+      <div class="chat-name-group">
+        <h3>${c.name}</h3>
+        <span>${c.online ? '🟢 在线' : '⚪ 离线'} · 最后活跃: ${c.lastActive} · ${c.source}</span>
+      </div>
+    </div>
+    <div class="chat-actions">
+      <button class="chat-action-btn">📞 电话</button>
+      <button class="chat-action-btn">📋 跟进记录</button>
+      <button class="chat-action-btn primary">✨ AI 分析</button>
+    </div>
+  `;
+}
+
+// ===== Messages =====
+function renderMessages(c) {
+  const container = document.getElementById('chatMessages');
+  let html = '';
+  c.messages.forEach(msg => {
+    if (msg.type === 'date') {
+      html += `<div class="date-divider"><span>${msg.text}</span></div>`;
+    } else {
+      const isCustomer = msg.from === 'customer';
+      html += `
+        <div class="message-row ${isCustomer ? 'customer' : 'sales'}">
+          ${isCustomer ? `<div class="msg-avatar" style="background:${c.color}">${c.avatar}</div>` : ''}
+          <div>
+            <div class="msg-bubble">${msg.text}</div>
+            <div class="msg-time">${msg.time}</div>
+          </div>
+          ${!isCustomer ? `<div class="msg-avatar" style="background:var(--primary)">我</div>` : ''}
+        </div>
+      `;
+    }
+  });
+  container.innerHTML = html;
+  container.scrollTop = container.scrollHeight;
+}
+
+// ===== AI Suggestions =====
+function renderAiSuggestions(c) {
+  if (!isAiMode) return;
+  const body = document.getElementById('aiSuggestionBody');
+  body.innerHTML = c.aiSuggestions.map((s, i) => `
+    <div class="ai-suggestion-card fade-in" style="animation-delay:${i * 0.1}s">
+      <div class="ai-suggestion-text">${s.text.replace(/\n/g, '<br>')}</div>
+      <div class="ai-suggestion-meta">
+        <span class="confidence-tag ${s.level}">🎯 置信度 ${s.confidence}%</span>
+        <div class="ai-btn-group">
+          <button class="ai-btn change" onclick="changeSuggestion(${c.id}, ${i})">🔄 换一个</button>
+          <button class="ai-btn send" onclick="sendAiSuggestion(${c.id}, ${i})">📤 一键发送</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== Profile =====
+function renderProfile(c) {
+  const panel = document.getElementById('rightPanel');
+  const progressSteps = ['Day0', 'Day1', 'Day2', 'Day3'];
+  let progressHtml = '<div class="progress-bar-wrap">';
+  progressSteps.forEach((step, i) => {
+    let cls = i < c.courseProgress ? 'completed' : i === c.courseProgress ? 'current' : '';
+    progressHtml += `
+      <div class="progress-step ${cls}">
+        <div class="step-dot">${i < c.courseProgress ? '✓' : i + 1}</div>
+        <div class="step-label">${step}</div>
+      </div>
+      ${i < progressSteps.length - 1 ? `<div class="progress-line ${i < c.courseProgress ? 'done' : ''}"></div>` : ''}
+    `;
+  });
+  progressHtml += '</div>';
+
+  panel.innerHTML = `
+    <div class="profile-section">
+      <div class="profile-header">
+        <div class="profile-avatar" style="background:${c.color}">${c.avatar}</div>
+        <div>
+          <div class="profile-name">${c.name}</div>
+          <div class="profile-subtitle">孩子: ${c.childName} · ${c.childAge}</div>
+        </div>
+      </div>
+      <div class="tag-list">
+        ${c.tags.map((t, i) => `<span class="tag-capsule ${c.tagClasses[i]}">${t}</span>`).join('')}
+      </div>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">决策人</div>
+          <div class="value">${c.decisionMaker.split('（')[0]}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">年投入预算</div>
+          <div class="value">${c.budget.split('/')[0]}</div>
+        </div>
+        <div class="info-item full">
+          <div class="label">来源渠道</div>
+          <div class="value">${c.source}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-section">
+      <div class="section-title">📚 课程参与状态</div>
+      ${progressHtml}
+      <div class="checkin-stats">
+        <div class="checkin-stat">
+          <div class="stat-num">${c.checkinDays}</div>
+          <div class="stat-label">累计打卡</div>
+        </div>
+        <div class="checkin-stat">
+          <div class="stat-num">${c.totalDays}</div>
+          <div class="stat-label">总天数</div>
+        </div>
+        <div class="checkin-stat">
+          <div class="stat-num">${c.streakDays}</div>
+          <div class="stat-label">连续打卡</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-section">
+      <div class="section-title">📝 每日会话总结</div>
+      ${c.dailySummaries.map((s, i) => `
+        <div class="summary-card ${i === 0 ? 'open' : ''}">
+          <div class="summary-header" onclick="toggleSummary(this)">
+            <div class="summary-date">📅 ${s.date}</div>
+            <span class="summary-arrow">▼</span>
+          </div>
+          <div class="summary-body">
+            <div class="summary-text">${s.summary}</div>
+            <div class="followup-tip">
+              <strong>💡 跟进建议</strong>
+              ${s.suggestion}
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ===== Tab Switching =====
+function switchTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.nav-tab[data-tab="${tab}"]`).classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t => { t.classList.remove('active'); });
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'chat') {
+    document.getElementById('tab-chat').style.display = 'flex';
+  }
+}
+
+// ===== Mode Toggle =====
+function toggleMode() {
+  isAiMode = !isAiMode;
+  const toggle = document.getElementById('modeToggle');
+  const label = document.getElementById('modeLabel');
+  const area = document.getElementById('aiSuggestionArea');
+  if (isAiMode) {
+    toggle.classList.add('ai-mode');
+    label.textContent = 'AI 模式';
+    area.classList.remove('hidden');
+    renderAiSuggestions(customers.find(x => x.id === currentCustomerId));
+  } else {
+    toggle.classList.remove('ai-mode');
+    label.textContent = '人工模式';
+    area.classList.add('hidden');
+  }
+}
+
+// ===== Filter =====
+function setFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.filter-tab[data-filter="${filter}"]`).classList.add('active');
+  renderConversationList();
+}
+
+function filterConversations() {
+  renderConversationList();
+}
+
+// ===== Summary Toggle =====
+function toggleSummary(header) {
+  const card = header.parentElement;
+  card.classList.toggle('open');
+}
+
+// ===== Send Message =====
+function sendMessage() {
+  const input = document.getElementById('messageInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const c = customers.find(x => x.id === currentCustomerId);
+  const now = new Date();
+  const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  c.messages.push({ from: 'sales', text, time });
+  input.value = '';
+  renderMessages(c);
+}
+
+function handleKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function sendAiSuggestion(customerId, suggestionIndex) {
+  const c = customers.find(x => x.id === customerId);
+  const suggestion = c.aiSuggestions[suggestionIndex];
+  const now = new Date();
+  const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  c.messages.push({ from: 'sales', text: suggestion.text, time });
+  c.aiStatus = 'done';
+  c.unread = 0;
+  renderMessages(c);
+  renderConversationList();
+}
+
+function changeSuggestion(customerId, index) {
+  const c = customers.find(x => x.id === customerId);
+  const alternatives = [
+    '您好！根据我对您需求的了解，为您推荐以下学习方案...',
+    '感谢您的关注！我这边有一个特别适合您孩子的学习计划...',
+    '收到！针对您提到的情况，我给您几个建议供参考...'
+  ];
+  c.aiSuggestions[index].text = alternatives[Math.floor(Math.random() * alternatives.length)];
+  c.aiSuggestions[index].confidence = Math.floor(Math.random() * 15) + 75;
+  renderAiSuggestions(c);
+}
+
+// ===== Dashboard =====
+function renderDashboard() {
+  const view = document.getElementById('dashboardView');
+  view.innerHTML = `
+    <h2>📊 销售看板</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#ecfeff;">💬</div>
+        <div class="stat-value">247</div>
+        <div class="stat-label">活跃客户数</div>
+        <div class="stat-change up">↑ 12% vs 上周</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#f0fdf4;">✅</div>
+        <div class="stat-value">38</div>
+        <div class="stat-label">今日成交单数</div>
+        <div class="stat-change up">↑ 8% vs 昨日</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fef3c7;">💰</div>
+        <div class="stat-value">¥156,800</div>
+        <div class="stat-label">今日成交额</div>
+        <div class="stat-change up">↑ 23% vs 昨日</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#f5f3ff;">⏱️</div>
+        <div class="stat-value">2.3min</div>
+        <div class="stat-label">平均响应时长</div>
+        <div class="stat-change up">↓ 15% (更快)</div>
+      </div>
+    </div>
+    <div class="chart-placeholder">
+      <h3>📈 本周每日成交趋势</h3>
+      <div class="bar-chart">
+        ${['周一','周二','周三','周四','周五','周六','周日'].map((d, i) => {
+          const vals = [28, 32, 25, 38, 42, 35, 38];
+          const h = (vals[i] / 45) * 160;
+          const colors = ['#0891b2','#06b6d4','#14b8a6','#0891b2','#06b6d4','#14b8a6','#0891b2'];
+          return `<div class="bar-item">
+            <div class="bar-value">${vals[i]}</div>
+            <div class="bar-fill" style="height:${h}px;background:${colors[i]};"></div>
+            <div class="bar-label">${d}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="chart-placeholder">
+      <h3>🏆 客户等级分布</h3>
+      <div style="display:flex;gap:20px;align-items:center;padding:10px 0;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:13px;font-weight:600;width:30px;">S级</span>
+            <div style="flex:1;background:var(--gray-100);border-radius:6px;height:24px;overflow:hidden;">
+              <div style="width:25%;height:100%;background:var(--s-color);border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;">
+                <span style="font-size:11px;color:white;font-weight:700;">62</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <span style="font-size:13px;font-weight:600;width:30px;">A级</span>
+            <div style="flex:1;background:var(--gray-100);border-radius:6px;height:24px;overflow:hidden;">
+              <div style="width:40%;height:100%;background:var(--a-color);border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;">
+                <span style="font-size:11px;color:white;font-weight:700;">98</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:13px;font-weight:600;width:30px;">B级</span>
+            <div style="flex:1;background:var(--gray-100);border-radius:6px;height:24px;overflow:hidden;">
+              <div style="width:55%;height:100%;background:var(--b-color);border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;">
+                <span style="font-size:11px;color:white;font-weight:700;">87</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-placeholder">
+      <h3>🔥 今日待跟进客户 TOP5</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--gray-200);">
+            <th style="text-align:left;padding:10px 8px;color:var(--gray-500);font-weight:600;">客户</th>
+            <th style="text-align:left;padding:10px 8px;color:var(--gray-500);font-weight:600;">等级</th>
+            <th style="text-align:left;padding:10px 8px;color:var(--gray-500);font-weight:600;">最后联系</th>
+            <th style="text-align:left;padding:10px 8px;color:var(--gray-500);font-weight:600;">跟进建议</th>
+            <th style="text-align:left;padding:10px 8px;color:var(--gray-500);font-weight:600;">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${customers.map(c => `
+            <tr style="border-bottom:1px solid var(--gray-100);">
+              <td style="padding:10px 8px;font-weight:600;">${c.name}</td>
+              <td style="padding:10px 8px;"><span class="conv-tag ${c.level === 'S' ? 's-tag' : c.level === 'A' ? 'a-tag' : 'b-tag'}">${c.level}级</span></td>
+              <td style="padding:10px 8px;color:var(--gray-500);">${c.lastActive}</td>
+              <td style="padding:10px 8px;color:var(--gray-600);font-size:12px;">${c.dailySummaries[0]?.suggestion?.substring(0, 30) || '-'}...</td>
+              <td style="padding:10px 8px;"><button class="chat-action-btn" style="font-size:11px;padding:4px 10px;" onclick="switchTab('chat');selectCustomer(${c.id})">去沟通</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ===== Insights =====
+function renderInsights() {
+  const view = document.getElementById('insightsView');
+  view.innerHTML = `
+    <div class="insight-card">
+      <h3>🧠 AI 客户洞察</h3>
+      <ul class="insight-list">
+        <li>
+          <div class="bullet"></div>
+          <span><strong>张雨萱妈妈</strong> 正处于高意向窗口期，建议24小时内完成体验营邀约。关键词匹配：专注力 + 4岁 + 高预算，转化率预估 <strong>72%</strong>。</span>
+          <span class="priority-tag urgent">紧急</span>
+        </li>
+        <li>
+          <div class="bullet"></div>
+          <span><strong>李明轩爸爸</strong> 价格犹豫中，建议推送学员效果数据+限时优惠。家长决策周期通常3-5天，当前处于Day2，仍有较充裕跟进时间。</span>
+          <span class="priority-tag urgent">紧急</span>
+        </li>
+        <li>
+          <div class="bullet"></div>
+          <span><strong>王诗涵妈妈</strong> 老学员续费意向明确，建议立即推送进阶课详情+老学员专属优惠，预估客单价 <strong>¥5,980</strong>。</span>
+          <span class="priority-tag normal">今日</span>
+        </li>
+        <li>
+          <div class="bullet"></div>
+          <span><strong>陈浩宇爸爸</strong> 回复较为冷淡，建议先发送免费评估工具做价值输出，再引导妈妈入群。需要拉入决策人后再深度沟通。</span>
+          <span class="priority-tag normal">跟进</span>
+        </li>
+      </ul>
+    </div>
+    <div class="insight-card">
+      <h3>📊 话术效果分析</h3>
+      <ul class="insight-list">
+        <li>
+          <div class="bullet"></div>
+          <span>本周"<strong>黄金窗口期</strong>"话术回复率比平均高出 <strong>34%</strong>，建议在3-6岁家长群体中广泛使用。</span>
+        </li>
+        <li>
+          <div class="bullet"></div>
+          <span>"<strong>限时优惠+剩余名额</strong>"组合话术在价格敏感客户中的转化率提升 <strong>28%</strong>。</span>
+        </li>
+        <li>
+          <div class="bullet"></div>
+          <span>发送"<strong>学员案例/效果数据</strong>"后，客户平均回复时间缩短 <strong>40%</strong>。建议作为标准跟进动作。</span>
+        </li>
+        <li>
+          <div class="bullet"></div>
+          <span>在晚上 <strong>20:00-21:30</strong> 发送消息的回复率最高（68%），建议集中在此时段跟进高意向客户。</span>
+        </li>
+      </ul>
+    </div>
+    <div class="insight-card">
+      <h3>🎯 今日重点关注</h3>
+      <ul class="insight-list">
+        <li>
+          <div class="bullet"></div>
+          <span>有 <strong>3位</strong> 客户超过48小时未回复，建议发送关怀消息激活。AI已自动生成跟进话术，可在AI副驾中查看。</span>
+        </li>
+        <li>
+          <div class="bullet"></div>
+          <span>本周新留资客户 <strong>15位</strong>，其中S级意向 <strong>4位</strong>，建议优先跟进。</span>
+        </li>
+        <li>
+          <div class="bullet"></div>
+          <span>老学员续费率本月达到 <strong>82%</strong>，较上月提升 <strong>6%</strong>。王诗涵等5位学员有升级意向。</span>
+        </li>
+      </ul>
+    </div>
+  `;
+}
+
+// ===== Copilot =====
+function renderCopilot() {
+  const view = document.getElementById('copilotView');
+  view.innerHTML = `
+    <div class="copilot-card">
+      <h3>🤖 AI 话术库</h3>
+      <div class="script-item">
+        <div class="scenario">📌 场景：新客户首次沟通</div>
+        <div class="text">您好！我是XX老师～感谢您的关注！了解到您对{课程方向}感兴趣，请问宝贝现在多大了呢？我根据孩子的年龄给您推荐最适合的学习方案😊</div>
+        <button class="copy-btn" onclick="copyText(this)">📋 复制话术</button>
+      </div>
+      <div class="script-item">
+        <div class="scenario">📌 场景：客户犹豫价格</div>
+        <div class="text">理解您的考虑！其实教育投资最重要的是效果和适合度。跟您分享一组数据：我们的学员中，85%在课程结束后{核心能力}测试成绩提升了30%以上。而且现在有限时优惠，平均一节课不到{单价}元，性价比非常高～</div>
+        <button class="copy-btn" onclick="copyText(this)">📋 复制话术</button>
+      </div>
+      <div class="script-item">
+        <div class="scenario">📌 场景：邀约体验营</div>
+        <div class="text">{孩子名}妈妈/爸爸，我们有一个{天数}天的免费体验营，在家就能带孩子做。很多家长反馈孩子参与后变化很大！最近一期明天就开始了，我帮您预约一个名额？</div>
+        <button class="copy-btn" onclick="copyText(this)">📋 复制话术</button>
+      </div>
+      <div class="script-item">
+        <div class="scenario">📌 场景：老学员续费/升级</div>
+        <div class="text">{孩子名}最近的打卡表现太棒了！能看出来{孩子名}对这个方向非常有兴趣。根据目前的学习进度，我建议可以进入{进阶课程名}阶段了。作为老学员，我们有一个专属优惠价，您了解一下？</div>
+        <button class="copy-btn" onclick="copyText(this)">📋 复制话术</button>
+      </div>
+      <div class="script-item">
+        <div class="scenario">📌 场景：超过48小时未回复</div>
+        <div class="text">{称呼}您好！最近忙了吧～上次聊到{孩子名}的{学习方向}，我这边整理了一些资料觉得特别适合您，发给您看看？不着急决定，先了解一下也好😊</div>
+        <button class="copy-btn" onclick="copyText(this)">📋 复制话术</button>
+      </div>
+    </div>
+    <div class="copilot-card">
+      <h3>💡 AI 沟通策略</h3>
+      <div class="script-item">
+        <div class="scenario">🎯 高意向客户转化策略</div>
+        <div class="text">
+          <strong>Step 1:</strong> 24小时内完成首次深度沟通，了解痛点<br>
+          <strong>Step 2:</strong> 发送课程大纲 + 2-3个学员案例<br>
+          <strong>Step 3:</strong> 邀约免费体验营（制造紧迫感）<br>
+          <strong>Step 4:</strong> 体验营期间每日跟进反馈<br>
+          <strong>Step 5:</strong> 体验结束当天推送正式课程+限时优惠<br>
+          <strong>Step 6:</strong> 48小时内未成交，发送学员效果数据做最后推动
+        </div>
+      </div>
+      <div class="script-item">
+        <div class="scenario">🎯 价格敏感客户策略</div>
+        <div class="text">
+          <strong>Step 1:</strong> 先输出价值（免费评估/资料），建立信任<br>
+          <strong>Step 2:</strong> 用"每节课均价"替代总价概念<br>
+          <strong>Step 3:</strong> 分期付款方案降低心理门槛<br>
+          <strong>Step 4:</strong> 限时优惠+赠品组合提升感知价值<br>
+          <strong>Step 5:</strong> 发送其他价格敏感客户的成功案例
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function copyText(btn) {
+  const text = btn.previousElementSibling.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ 已复制';
+    setTimeout(() => { btn.textContent = '📋 复制话术'; }, 2000);
+  });
+}
+
+// Init
+init();
+</script>
+</body>
+</html>

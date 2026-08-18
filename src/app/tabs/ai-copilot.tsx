@@ -1,228 +1,122 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  BookOpen,
-  Copy,
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Sparkles,
-  MessageSquare,
-  Target,
-  Zap,
-} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { scriptLibrary } from '@/lib/mock-data';
 
-export function AICopilotView() {
-  const [expandedCategory, setExpandedCategory] = useState<string>('开场白');
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+const scripts = [
+  {
+    scenario: '📌 场景：新客户首次沟通',
+    text: '您好！我是XX老师～感谢您的关注！了解到您对{课程方向}感兴趣，请问宝贝现在多大了呢？我根据孩子的年龄给您推荐最适合的学习方案😊',
+  },
+  {
+    scenario: '📌 场景：客户犹豫价格',
+    text: '理解您的考虑！其实教育投资最重要的是效果和适合度。跟您分享一组数据：我们的学员中，85%在课程结束后{核心能力}测试成绩提升了30%以上。而且现在有限时优惠，平均一节课不到{单价}元，性价比非常高～',
+  },
+  {
+    scenario: '📌 场景：邀约体验营',
+    text: '{孩子名}妈妈/爸爸，我们有一个{天数}天的免费体验营，在家就能带孩子做。很多家长反馈孩子参与后变化很大！最近一期明天就开始了，我帮您预约一个名额？',
+  },
+  {
+    scenario: '📌 场景：老学员续费/升级',
+    text: '{孩子名}最近的打卡表现太棒了！能看出来{孩子名}对这个方向非常有兴趣。根据目前的学习进度，我建议可以进入{进阶课程名}阶段了。作为老学员，我们有一个专属优惠价，您了解一下？',
+  },
+  {
+    scenario: '📌 场景：超过48小时未回复',
+    text: '{称呼}您好！最近忙了吧～上次聊到{孩子名}的{学习方向}，我这边整理了一些资料觉得特别适合您，发给您看看？不着急决定，先了解一下也好😊',
+  },
+];
 
-  const handleCopy = (content: string, id: string) => {
-    navigator.clipboard.writeText(content).catch(() => {});
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+const strategies = [
+  {
+    scenario: '🎯 高意向客户转化策略',
+    steps: [
+      '24小时内完成首次深度沟通，了解痛点',
+      '发送课程大纲 + 2-3个学员案例',
+      '邀约免费体验营（制造紧迫感）',
+      '体验营期间每日跟进反馈',
+      '体验结束当天推送正式课程+限时优惠',
+      '48小时内未成交，发送学员效果数据做最后推动',
+    ],
+  },
+  {
+    scenario: '🎯 价格敏感客户策略',
+    steps: [
+      '先输出价值（免费评估/资料），建立信任',
+      '用"每节课均价"替代总价概念',
+      '分期付款方案降低心理门槛',
+      '限时优惠+赠品组合提升感知价值',
+      '发送其他价格敏感客户的成功案例',
+    ],
+  },
+];
+
+export function CopilotView() {
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  const handleCopy = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
   };
 
-  const strategies = [
-    {
-      title: '新客户破冰策略',
-      description: '首次接触客户时，通过共情和专业知识建立信任',
-      steps: ['了解客户来源渠道', '匹配相似案例', '提出开放式问题', '展示专业资质'],
-      icon: MessageSquare,
-      color: 'text-[#0891b2]',
-      bgColor: 'bg-[#ecfeff]',
-    },
-    {
-      title: '需求挖掘策略',
-      description: '通过系统性提问发现客户真实需求与痛点',
-      steps: ['了解孩子基本情况', '探索教育困惑', '确认期望目标', '评估决策流程'],
-      icon: Target,
-      color: 'text-[#8b5cf6]',
-      bgColor: 'bg-[#8b5cf6]/5',
-    },
-    {
-      title: '异议处理策略',
-      description: '针对常见异议（价格/时间/效果）的专业应对方法',
-      steps: ['认同客户感受', '提供数据支撑', '给出替代方案', '创造紧迫感'],
-      icon: Zap,
-      color: 'text-amber-600',
-      bgColor: 'bg-amber-50',
-    },
-  ];
-
   return (
-    <div className="h-full overflow-y-auto p-6 custom-scrollbar">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-xl font-bold text-slate-900">AI 副驾</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            话术库与沟通策略，助力高效成交
-          </p>
-        </div>
+    <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+      {/* Script Library */}
+      <div className="mb-4 rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+        <h3 className="mb-3 flex items-center gap-2 text-[15px] font-bold text-gray-800">
+          🤖 AI 话术库
+        </h3>
+        {scripts.map((s, i) => (
+          <div
+            key={i}
+            className="mb-2.5 rounded-lg border-l-[3px] border-l-[#0891b2] bg-gray-50 p-3.5 last:mb-0"
+          >
+            <div className="mb-1.5 text-xs font-semibold text-[#0e7490]">
+              {s.scenario}
+            </div>
+            <div className="whitespace-pre-line text-[13px] leading-relaxed text-gray-600">
+              {s.text}
+            </div>
+            <button
+              onClick={() => handleCopy(s.text, i)}
+              className={cn(
+                'mt-2 cursor-pointer rounded-md border-0 px-3 py-1 text-[11.5px] font-semibold transition-all',
+                copiedIdx === i
+                  ? 'bg-[#0891b2] text-white'
+                  : 'bg-[#ecfeff] text-[#0e7490] hover:bg-[#0891b2] hover:text-white'
+              )}
+            >
+              {copiedIdx === i ? '✅ 已复制' : '📋 复制话术'}
+            </button>
+          </div>
+        ))}
+      </div>
 
-        <div className="grid grid-cols-3 gap-6">
-          {/* Script Library - Left 2/3 */}
-          <div className="col-span-2 space-y-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-5">
-              <div className="mb-4 flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-[#0891b2]" />
-                <h2 className="text-base font-semibold text-slate-900">
-                  话术库
-                </h2>
-              </div>
-              <div className="space-y-2">
-                {scriptLibrary.map((category) => (
-                  <div key={category.category} className="rounded-lg border border-slate-100">
-                    <button
-                      onClick={() =>
-                        setExpandedCategory(
-                          expandedCategory === category.category
-                            ? ''
-                            : category.category
-                        )
-                      }
-                      className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-                    >
-                      <span className="text-sm font-medium text-slate-700">
-                        {category.category}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400">
-                          {category.scripts.length} 条话术
-                        </span>
-                        {expandedCategory === category.category ? (
-                          <ChevronDown className="h-4 w-4 text-slate-400" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-slate-400" />
-                        )}
-                      </div>
-                    </button>
-                    {expandedCategory === category.category && (
-                      <div className="border-t border-slate-100 px-4 py-3 space-y-3">
-                        {category.scripts.map((script, idx) => {
-                          const scriptId = `${category.category}-${idx}`;
-                          return (
-                            <div
-                              key={idx}
-                              className="rounded-lg bg-slate-50 p-3"
-                            >
-                              <div className="mb-1.5 flex items-center justify-between">
-                                <span className="text-xs font-medium text-[#0891b2]">
-                                  {script.title}
-                                </span>
-                                <button
-                                  onClick={() =>
-                                    handleCopy(script.content, scriptId)
-                                  }
-                                  className={cn(
-                                    'flex items-center gap-1 rounded-md px-2 py-1 text-xs transition-colors',
-                                    copiedId === scriptId
-                                      ? 'bg-green-100 text-green-700'
-                                      : 'text-slate-500 hover:bg-slate-200 hover:text-slate-700'
-                                  )}
-                                >
-                                  {copiedId === scriptId ? (
-                                    <>
-                                      <Check className="h-3 w-3" />
-                                      已复制
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Copy className="h-3 w-3" />
-                                      复制
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                              <p className="text-sm leading-relaxed text-slate-600">
-                                {script.content}
-                              </p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+      {/* Strategies */}
+      <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+        <h3 className="mb-3 flex items-center gap-2 text-[15px] font-bold text-gray-800">
+          💡 AI 沟通策略
+        </h3>
+        {strategies.map((st, i) => (
+          <div
+            key={i}
+            className="mb-2.5 rounded-lg border-l-[3px] border-l-[#0891b2] bg-gray-50 p-3.5 last:mb-0"
+          >
+            <div className="mb-2 text-xs font-semibold text-[#0e7490]">
+              {st.scenario}
+            </div>
+            <div className="space-y-1.5 text-[13px] leading-relaxed text-gray-600">
+              {st.steps.map((step, j) => (
+                <div key={j} className="flex gap-2">
+                  <strong className="shrink-0 text-gray-800">
+                    Step {j + 1}:
+                  </strong>
+                  <span>{step}</span>
+                </div>
+              ))}
             </div>
           </div>
-
-          {/* Communication Strategies - Right 1/3 */}
-          <div className="space-y-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-5">
-              <div className="mb-4 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-[#8b5cf6]" />
-                <h2 className="text-base font-semibold text-slate-900">
-                  沟通策略
-                </h2>
-              </div>
-              <div className="space-y-3">
-                {strategies.map((strategy) => {
-                  const Icon = strategy.icon;
-                  return (
-                    <div
-                      key={strategy.title}
-                      className={cn('rounded-xl border border-slate-100 p-4', strategy.bgColor)}
-                    >
-                      <div className="mb-2 flex items-center gap-2">
-                        <Icon className={cn('h-4 w-4', strategy.color)} />
-                        <h3 className="text-sm font-semibold text-slate-800">
-                          {strategy.title}
-                        </h3>
-                      </div>
-                      <p className="mb-3 text-xs text-slate-500">
-                        {strategy.description}
-                      </p>
-                      <div className="space-y-1.5">
-                        {strategy.steps.map((step, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-2 text-xs text-slate-600"
-                          >
-                            <span
-                              className={cn(
-                                'flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-medium text-white',
-                                strategy.color.replace('text-', 'bg-')
-                              )}
-                            >
-                              {idx + 1}
-                            </span>
-                            {step}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Quick Tips */}
-            <div className="rounded-xl border border-[#0891b2]/20 bg-[#ecfeff] p-4">
-              <h3 className="mb-2 text-sm font-semibold text-[#0891b2]">
-                今日 AI 提示
-              </h3>
-              <ul className="space-y-2 text-xs text-slate-600">
-                <li className="flex items-start gap-1.5">
-                  <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0891b2]" />
-                  本周「价格异议」频率上升 23%，建议复习价格应对话术
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0891b2]" />
-                  成功案例：杨明上周用「从众心理」话术成功转化 3 位 A 级客户
-                </li>
-                <li className="flex items-start gap-1.5">
-                  <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0891b2]" />
-                  建议在与新客户沟通的前 3 分钟内完成需求初步判断
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

@@ -1,46 +1,46 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  BarChart3,
-  Brain,
-  MessageSquare,
-  Sparkles,
-  Users,
-} from 'lucide-react';
+import { Brain, Sparkles, BarChart3, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { WorkspaceView } from './workspace-view';
-import { AIInsightsView } from './tabs/ai-insights';
-import { CustomerManagementView } from './tabs/customer-management';
-import { AICopilotView } from './tabs/ai-copilot';
-import { SalesDashboardView } from './tabs/sales-dashboard';
+import { ChatView } from './chat-view';
+import { InsightsView } from './tabs/ai-insights';
+import { CopilotView } from './tabs/ai-copilot';
+import { DashboardView } from './tabs/sales-dashboard';
 
-const tabs = [
-  { id: 'workspace', label: '工作台', icon: MessageSquare },
+type TabId = 'chat' | 'insights' | 'copilot' | 'dashboard';
+
+const tabs: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'insights', label: 'AI 洞察', icon: Brain },
-  { id: 'customers', label: '客户画像管理', icon: Users },
+  { id: 'chat', label: '客户画像', icon: MessageSquare },
   { id: 'copilot', label: 'AI 副驾', icon: Sparkles },
   { id: 'dashboard', label: '销售看板', icon: BarChart3 },
-] as const;
-
-type TabId = (typeof tabs)[number]['id'];
+];
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<TabId>('workspace');
+  const [activeTab, setActiveTab] = useState<TabId>('chat');
+  const [isAiMode, setIsAiMode] = useState(true);
+  const [notificationCount] = useState(5);
 
   return (
-    <div className="flex h-screen flex-col bg-slate-50">
-      {/* Top Navigation */}
-      <header className="flex h-14 shrink-0 items-center border-b border-slate-200 bg-white px-6">
-        <div className="flex items-center gap-2 mr-8">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0891b2]">
-            <Sparkles className="h-4 w-4 text-white" />
+    <div className="flex h-screen flex-col overflow-hidden bg-[#f8fafc] text-gray-800">
+      {/* Top Navigation - gradient matching prototype */}
+      <header
+        className="flex h-14 shrink-0 items-center justify-between px-6 text-white z-50"
+        style={{
+          background: 'linear-gradient(135deg, #0e7490 0%, #0891b2 50%, #14b8a6 100%)',
+          boxShadow: '0 2px 8px rgba(8,145,178,0.3)',
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20 text-lg backdrop-blur-sm">
+            🎯
           </div>
-          <span className="text-base font-semibold text-slate-900">
-            智学教育
-          </span>
+          <span className="text-[17px] font-bold tracking-wide">AI 销售工作台</span>
+          <span className="ml-2 text-[11px] font-normal text-white/75">家庭教育规划</span>
         </div>
-        <nav className="flex items-center gap-1">
+
+        <nav className="flex gap-0.5 rounded-[10px] bg-white/10 p-[3px]">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -48,36 +48,61 @@ export default function Home() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all',
+                  'flex items-center gap-1.5 rounded-lg px-5 py-[7px] text-[13.5px] font-medium transition-all',
                   activeTab === tab.id
-                    ? 'bg-[#ecfeff] text-[#0891b2]'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                    ? 'bg-white/[0.22] font-semibold text-white shadow-sm'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3.5 w-3.5" />
                 {tab.label}
               </button>
             );
           })}
         </nav>
-        <div className="ml-auto flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5">
-            <div className="h-2 w-2 rounded-full bg-green-500" />
-            <span className="text-xs text-slate-600">在线</span>
+
+        <div className="flex items-center gap-4">
+          <div className="relative cursor-pointer text-xl opacity-90">
+            🔔
+            {notificationCount > 0 && (
+              <span className="absolute -right-1.5 -top-1 rounded-full bg-red-500 px-[5px] py-[1px] text-[10px] font-semibold text-white">
+                {notificationCount}
+              </span>
+            )}
           </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0891b2] text-xs font-medium text-white">
-            杨
+          <div
+            className={cn(
+              'flex cursor-pointer select-none items-center gap-2 rounded-full px-3.5 py-[5px] transition-all',
+              'bg-white/[0.12] hover:bg-white/20'
+            )}
+            onClick={() => setIsAiMode(!isAiMode)}
+          >
+            <span className="min-w-[48px] text-center text-[12.5px] font-medium">
+              {isAiMode ? 'AI 模式' : '人工模式'}
+            </span>
+            <div
+              className={cn(
+                'relative h-5 w-9 rounded-full transition-all',
+                isAiMode ? 'bg-[#5eead4]' : 'bg-white/30'
+              )}
+            >
+              <div
+                className={cn(
+                  'absolute top-[2px] h-4 w-4 rounded-full shadow-md transition-all',
+                  isAiMode ? 'left-[18px] bg-[#0e7490]' : 'left-[2px] bg-white'
+                )}
+              />
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Content Area */}
-      <main className="flex-1 overflow-hidden">
-        {activeTab === 'workspace' && <WorkspaceView />}
-        {activeTab === 'insights' && <AIInsightsView />}
-        {activeTab === 'customers' && <CustomerManagementView />}
-        {activeTab === 'copilot' && <AICopilotView />}
-        {activeTab === 'dashboard' && <SalesDashboardView />}
+      {/* Main Content */}
+      <main className="flex flex-1 flex-col overflow-hidden">
+        {activeTab === 'chat' && <ChatView isAiMode={isAiMode} />}
+        {activeTab === 'insights' && <InsightsView />}
+        {activeTab === 'copilot' && <CopilotView />}
+        {activeTab === 'dashboard' && <DashboardView />}
       </main>
     </div>
   );

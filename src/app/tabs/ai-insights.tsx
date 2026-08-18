@@ -1,155 +1,122 @@
 'use client';
 
-import {
-  Brain,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  MessageSquare,
-  Target,
-  Lightbulb,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { topFAQs, intentDistribution } from '@/lib/mock-data';
+const insights = [
+  {
+    title: '🧠 AI 客户洞察',
+    items: [
+      {
+        bullet: true,
+        content:
+          '<strong>张雨萱妈妈</strong> 正处于高意向窗口期，建议24小时内完成体验营邀约。关键词匹配：专注力 + 4岁 + 高预算，转化率预估 <strong>72%</strong>。',
+        tag: { text: '紧急', class: 'urgent' },
+      },
+      {
+        bullet: true,
+        content:
+          '<strong>李明轩爸爸</strong> 价格犹豫中，建议推送学员效果数据+限时优惠。家长决策周期通常3-5天，当前处于Day2，仍有较充裕跟进时间。',
+        tag: { text: '紧急', class: 'urgent' },
+      },
+      {
+        bullet: true,
+        content:
+          '<strong>王诗涵妈妈</strong> 老学员续费意向明确，建议立即推送进阶课详情+老学员专属优惠，预估客单价 <strong>¥5,980</strong>。',
+        tag: { text: '今日', class: 'normal' },
+      },
+      {
+        bullet: true,
+        content:
+          '<strong>陈浩宇爸爸</strong> 回复较为冷淡，建议先发送免费评估工具做价值输出，再引导妈妈入群。需要拉入决策人后再深度沟通。',
+        tag: { text: '跟进', class: 'normal' },
+      },
+    ],
+  },
+  {
+    title: '📊 话术效果分析',
+    items: [
+      {
+        bullet: true,
+        content:
+          '本周"<strong>黄金窗口期</strong>"话术回复率比平均高出 <strong>34%</strong>，建议在3-6岁家长群体中广泛使用。',
+      },
+      {
+        bullet: true,
+        content:
+          '"<strong>限时优惠+剩余名额</strong>"组合话术在价格敏感客户中的转化率提升 <strong>28%</strong>。',
+      },
+      {
+        bullet: true,
+        content:
+          '发送"<strong>学员案例/效果数据</strong>"后，客户平均回复时间缩短 <strong>40%</strong>。建议作为标准跟进动作。',
+      },
+      {
+        bullet: true,
+        content:
+          '在晚上 <strong>20:00-21:30</strong> 发送消息的回复率最高（68%），建议集中在此时段跟进高意向客户。',
+      },
+    ],
+  },
+  {
+    title: '🎯 今日重点关注',
+    items: [
+      {
+        bullet: true,
+        content:
+          '有 <strong>3位</strong> 客户超过48小时未回复，建议发送关怀消息激活。AI已自动生成跟进话术，可在AI副驾中查看。',
+      },
+      {
+        bullet: true,
+        content:
+          '本周新留资客户 <strong>15位</strong>，其中S级意向 <strong>4位</strong>，建议优先跟进。',
+      },
+      {
+        bullet: true,
+        content:
+          '老学员续费率本月达到 <strong>82%</strong>，较上月提升 <strong>6%</strong>。王诗涵等5位学员有升级意向。',
+      },
+    ],
+  },
+];
 
-export function AIInsightsView() {
-  const trendIcons = {
-    up: <TrendingUp className="h-3 w-3 text-red-500" />,
-    down: <TrendingDown className="h-3 w-3 text-green-500" />,
-    stable: <Minus className="h-3 w-3 text-slate-400" />,
-  };
-
+export function InsightsView() {
   return (
-    <div className="h-full overflow-y-auto p-6 custom-scrollbar">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-xl font-bold text-slate-900">AI 洞察</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            团队级 AI 分析，帮助您了解客户趋势与常见问题
-          </p>
-        </div>
-
-        {/* Stats Overview */}
-        <div className="mb-6 grid grid-cols-4 gap-4">
-          {[
-            { label: '今日会话总量', value: '23', change: '+15%', icon: MessageSquare, color: 'text-[#0891b2]' },
-            { label: 'AI 自动回复率', value: '65%', change: '+8%', icon: Brain, color: 'text-[#8b5cf6]' },
-            { label: 'S级客户数', value: '12', change: '+3', icon: Target, color: 'text-red-500' },
-            { label: '平均响应时间', value: '2.3min', change: '-12%', icon: Lightbulb, color: 'text-amber-500' },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-xl border border-slate-200 bg-white p-4"
-            >
-              <div className="flex items-center justify-between">
-                <stat.icon className={cn('h-5 w-5', stat.color)} />
-                <span className="text-xs font-medium text-green-600">
-                  {stat.change}
-                </span>
-              </div>
-              <p className="mt-3 text-2xl font-bold text-slate-900">
-                {stat.value}
-              </p>
-              <p className="mt-0.5 text-xs text-slate-500">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-          {/* Top 10 FAQs */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <h2 className="mb-4 text-base font-semibold text-slate-900">
-              常见问题 Top 10
-            </h2>
-            <div className="space-y-2">
-              {topFAQs.map((faq) => (
-                <div
-                  key={faq.rank}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-slate-50 transition-colors"
-                >
+    <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+      {insights.map((section) => (
+        <div
+          key={section.title}
+          className="mb-4 rounded-xl border border-gray-100 bg-white p-5 shadow-sm"
+        >
+          <h3 className="mb-3 flex items-center gap-2 text-[15px] font-bold text-gray-800">
+            {section.title}
+          </h3>
+          <ul>
+            {section.items.map((item, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2.5 border-b border-gray-100 py-2.5 text-[13.5px] leading-relaxed text-gray-600 last:border-b-0"
+              >
+                {item.bullet && (
+                  <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#0891b2]" />
+                )}
+                <span
+                  className="flex-1"
+                  dangerouslySetInnerHTML={{ __html: item.content }}
+                />
+                {'tag' in item && item.tag && (
                   <span
-                    className={cn(
-                      'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold',
-                      faq.rank <= 3
-                        ? 'bg-[#0891b2] text-white'
-                        : 'bg-slate-100 text-slate-500'
-                    )}
+                    className={
+                      item.tag.class === 'urgent'
+                        ? 'shrink-0 rounded-lg bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-500'
+                        : 'shrink-0 rounded-lg bg-yellow-100 px-1.5 py-0.5 text-[10px] font-bold text-yellow-700'
+                    }
                   >
-                    {faq.rank}
+                    {item.tag.text}
                   </span>
-                  <p className="flex-1 text-sm text-slate-700">
-                    {faq.question}
-                  </p>
-                  <span className="text-xs text-slate-400">
-                    {faq.count}次
-                  </span>
-                  {trendIcons[faq.trend]}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Intent Distribution */}
-          <div className="space-y-6">
-            <div className="rounded-xl border border-slate-200 bg-white p-5">
-              <h2 className="mb-4 text-base font-semibold text-slate-900">
-                客户意向分布
-              </h2>
-              <div className="space-y-4">
-                {intentDistribution.map((item) => (
-                  <div key={item.level}>
-                    <div className="mb-1.5 flex items-center justify-between">
-                      <span className="text-sm font-medium text-slate-700">
-                        {item.level}
-                      </span>
-                      <span className="text-sm text-slate-500">
-                        {item.count}位 ({item.percentage}%)
-                      </span>
-                    </div>
-                    <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${item.percentage}%`,
-                          backgroundColor: item.color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 rounded-lg bg-slate-50 p-3">
-                <p className="text-xs text-slate-600">
-                  <span className="font-medium text-slate-800">AI 分析：</span>
-                  本周 A 级客户占比最高(47%)，建议重点跟进转化为 S 级。S 级客户数量较上周增长 20%，转化势头良好。
-                </p>
-              </div>
-            </div>
-
-            {/* AI Recommendations */}
-            <div className="rounded-xl border border-[#0891b2]/20 bg-[#ecfeff] p-5">
-              <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-[#0891b2]">
-                <Brain className="h-5 w-5" />
-                AI 建议
-              </h2>
-              <ul className="space-y-2">
-                {[
-                  '本周三下午 14:00-16:00 是客户响应高峰期，建议集中跟进',
-                  '「价格异议」是本周最常见问题，建议更新话术库中的价格应对策略',
-                  '3位 S 级客户进入签约阶段，建议优先处理',
-                  '团队平均响应时间优化 12%，继续保持',
-                ].map((rec, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#0891b2]" />
-                    {rec}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
+      ))}
     </div>
   );
 }
