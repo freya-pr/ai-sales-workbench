@@ -1,15 +1,12 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
+
+const isGithubPages = process.env.DEPLOY_TARGET === "github-pages";
 
 const nextConfig: NextConfig = {
-  output: 'export',
-  basePath: '/ai-sales-workbench',
-  env: {
-    NEXT_PUBLIC_BASE_PATH: '/ai-sales-workbench',
-  },
-  images: {
-    unoptimized: true,
-  },
-  allowedDevOrigins: ['*.dev.coze.site'],
+  ...(isGithubPages
+    ? { output: "export", images: { unoptimized: true }, basePath: "/ai-sales-workbench" }
+    : {}),
+  reactStrictMode: true,
 };
 
 export default nextConfig;
