@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { SupabaseConfigProvider } from '@/lib/supabase-config-inject';
 
 export const metadata: Metadata = {
   title: 'AI 销售工作台 - 智学教育',
@@ -13,7 +14,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <SupabaseConfigProvider>
+          {children}
+        </SupabaseConfigProvider>
+      </body>
     </html>
   );
 }
