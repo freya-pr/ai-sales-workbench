@@ -38,6 +38,16 @@ function parseUrlParams(): UrlParams {
   };
 }
 
+function getApiBase(): string {
+  if (typeof window === "undefined") return "";
+  // 优先使用 Vercel 生产域名（API 完整可用）
+  const host = window.location.hostname;
+  if (host.includes("github.io") || host.includes("localhost") || host.includes("127.0.0.1") || host.includes("coze.site")) {
+    return "https://ai-sales-workbench-liart.vercel.app";
+  }
+  return window.location.origin;
+}
+
 function WidgetChat() {
   const { config, isLoading: configLoading, error: configError } = useSupabaseConfig();
   const params = useMemo(() => parseUrlParams(), []);
@@ -174,6 +184,7 @@ function WidgetChat() {
           .limit(1);
 
         let convId: string;
+        let isNewConversation = false;
         if (convs && convs.length > 0) {
           convId = convs[0].id;
         } else {
@@ -189,6 +200,7 @@ function WidgetChat() {
             .single();
           if (convErr) throw convErr;
           convId = newConv.id;
+          isNewConversation = true;
         }
         if (cancelled) return;
         setConversationId(convId);
@@ -204,6 +216,24 @@ function WidgetChat() {
         if (msgs) {
           setMessages(msgs);
           setUnreadCount(msgs.filter((m) => m.sender_type !== "customer" && !m.is_read).length);
+
+          // 如果是新会话且没有任何历史消息，插入欢迎语
+          if (msgs.length === 0 && isNewConversation) {
+            const welcomeText = custName && !custName.startsWith("访客")
+              ? `您好，${custName}！😊 我是课程顾问小艾，很高兴为您服务。\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`
+              : `您好呀~我是课程顾问小艾 😊\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`;
+            await supabase.from("messages").insert({
+              conversation_id: convId,
+              customer_id: custId,
+              sender_type: "ai",
+              sender_name: "小艾",
+              message_type: "text",
+              content: welcomeText,
+              ai_confidence: 100,
+              ai_source: "welcome",
+              is_read: true,
+            });
+          }
         }
         setIsLoading(false);
       } catch (err) {
@@ -327,6 +357,7 @@ function WidgetChat() {
     setIsSending(true);
     setInput("");
     try {
+      // 1. 客户消息写入数据库
       const { error } = await supabaseRef.current.from("messages").insert({
         conversation_id: conversationId,
         customer_id: customerId,
@@ -338,6 +369,7 @@ function WidgetChat() {
       });
       if (error) throw error;
 
+      // 2. 更新客户最后消息
       await supabaseRef.current
         .from("customers")
         .update({
@@ -346,6 +378,28 @@ function WidgetChat() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", customerId);
+
+      // 3. 调用后端 AI 自动回复（AI 消息由后端写入，前端通过 Realtime 接收）
+      const recentHistory = messages
+        .filter((m) => m.sender_type === "customer" || m.sender_type === "ai")
+        .slice(-6)
+        .map((m) => ({
+          role: (m.sender_type === "customer" ? "user" : "assistant") as "user" | "assistant",
+          content: m.content || "",
+        }));
+
+      fetch(`${getApiBase()}/api/ai-reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId,
+          customerId,
+          message: text,
+          history: recentHistory,
+        }),
+      }).catch((err) => {
+        console.error("AI 回复请求失败:", err);
+      });
     } catch (err) {
       console.error("发送失败:", err);
       setInput(text);
