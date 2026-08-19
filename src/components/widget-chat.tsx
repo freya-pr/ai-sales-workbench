@@ -127,9 +127,22 @@ export function WidgetChat({
     const supabase = supabaseRef.current;
     const visitorId = getOrCreateVisitorId();
     let cancelled = false;
+    // 15秒超时保护，避免网络/权限异常时永远 loading
+    const timeoutTimer = setTimeout(() => {
+      if (!cancelled) {
+        console.error("初始化超时");
+        setInitError("连接超时，请检查网络后重试");
+        setIsLoading(false);
+      }
+    }, 15000);
 
     (async () => {
       try {
+        // 先做一次轻量探活，快速暴露网络/RLS 问题
+        const probe = await supabase.from("customers").select("id").limit(1);
+        if (probe.error) {
+          throw new Error(`数据库访问失败: ${probe.error.message}`);
+        }
         // 若 URL 带了 phone，优先按 phone 查
         let existingCust = null;
         if (params.phone) {
@@ -266,6 +279,7 @@ export function WidgetChat({
 
     return () => {
       cancelled = true;
+      clearTimeout(timeoutTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabaseRef.current]);
