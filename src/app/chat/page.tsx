@@ -13,7 +13,7 @@ function ChatLandingInner() {
             <GraduationCap className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-sm font-bold text-slate-800">智学规划</div>
+            <div className="text-sm font-bold text-slate-800">智能规划</div>
             <div className="text-[10px] text-slate-400">3-6岁学龄前家庭教育</div>
           </div>
         </div>
@@ -79,7 +79,7 @@ function ChatLandingInner() {
       </main>
 
       <footer className="px-5 py-4 text-center text-[11px] text-slate-400">
-        © {new Date().getFullYear()} 智学规划 · 专业的家庭教育顾问
+        © {new Date().getFullYear()} 智能规划 · 专业的家庭教育顾问
       </footer>
     </div>
   );

@@ -317,7 +317,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="mt-6 text-center text-[12px] text-white/50">
-          智学教育 · AI 销售工作台 © 2025
+          智能教育 · AI 销售工作台 © 2025
         </p>
       </div>
     </div>

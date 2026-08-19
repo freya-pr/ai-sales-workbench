@@ -82,7 +82,7 @@ export async function generateAIReply(
   userText: string,
   history: { role: "user" | "assistant"; content: string }[] = []
 ): Promise<{ content: string; confidence: number; source: string }> {
-  const systemPrompt = `你是"智学规划"的AI课程顾问，名字叫"小艾"，专业、亲切、有耐心。
+  const systemPrompt = `你是"智能规划"的AI课程顾问，名字叫"小艾"，专业、亲切、有耐心。
 你的服务对象是3-6岁学龄前儿童的家长。
 
 【核心信息】
