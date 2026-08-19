@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { Sparkles, GraduationCap, ShieldCheck } from "lucide-react";
+import { WidgetChatWithProvider } from "@/components/widget-chat";
 
 function ChatLandingInner() {
   return (
@@ -23,7 +24,7 @@ function ChatLandingInner() {
         </div>
       </header>
 
-      {/* 主体：左侧介绍 + 右侧聊天 */}
+      {/* 主体：左侧介绍 + 右侧聊天（直接嵌入组件，不用 iframe） */}
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:flex-row md:py-10">
         <section className="flex-1">
           <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-cyan-100/80 px-3 py-1 text-[11px] font-medium text-cyan-700">
@@ -65,15 +66,10 @@ function ChatLandingInner() {
           </div>
         </section>
 
-        {/* 聊天容器 - 直接嵌入 widget 组件，避免 iframe 跨域问题 */}
+        {/* 聊天容器 - 直接嵌入组件 */}
         <section className="flex w-full items-stretch md:w-[420px] md:shrink-0">
-          <div className="relative h-[72vh] w-full overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 md:h-auto md:min-h-[600px]">
-            <iframe
-              src="/widget?auto=1&ref=landing"
-              title="在线咨询"
-              className="h-full w-full border-0"
-              allow="clipboard-write"
-            />
+          <div className="h-[72vh] w-full overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 md:h-auto md:min-h-[600px]">
+            <WidgetChatWithProvider mode="inline" source="landing" />
           </div>
         </section>
       </main>
