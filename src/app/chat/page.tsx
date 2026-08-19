@@ -1,17 +1,9 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { Sparkles, GraduationCap, ShieldCheck } from "lucide-react";
 
 function ChatLandingInner() {
-  const sp = useSearchParams();
-  const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    setQuery(window.location.search);
-  }, [sp]);
-
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-cyan-50 via-white to-teal-50">
       {/* 顶部品牌 */}
@@ -25,7 +17,7 @@ function ChatLandingInner() {
             <div className="text-[10px] text-slate-400">3-6岁学龄前家庭教育</div>
           </div>
         </div>
-        <div className="hidden items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 sm:flex">
+        <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
           顾问在线
         </div>
@@ -64,19 +56,24 @@ function ChatLandingInner() {
               </div>
             ))}
           </div>
+
+          <div className="mt-8 rounded-xl border border-cyan-100 bg-cyan-50/40 p-4">
+            <div className="mb-1 text-[12px] font-semibold text-cyan-800">🎁 本月限时福利</div>
+            <p className="text-[12px] leading-relaxed text-cyan-900/80">
+              首次咨询即送 <strong>99元4节体验课</strong>，包含 1对1 学情测评 + 专属成长规划报告。
+            </p>
+          </div>
         </section>
 
-        {/* 聊天容器 */}
+        {/* 聊天容器 - 直接嵌入 widget 组件，避免 iframe 跨域问题 */}
         <section className="flex w-full items-stretch md:w-[420px] md:shrink-0">
-          <div className="relative h-[70vh] w-full overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 md:h-auto md:min-h-[560px]">
-            {query && (
-              <iframe
-                src={`/widget${query}`}
-                title="在线咨询"
-                className="h-full w-full border-0"
-                allow="clipboard-write"
-              />
-            )}
+          <div className="relative h-[72vh] w-full overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-slate-200 md:h-auto md:min-h-[600px]">
+            <iframe
+              src="/widget?auto=1&ref=landing"
+              title="在线咨询"
+              className="h-full w-full border-0"
+              allow="clipboard-write"
+            />
           </div>
         </section>
       </main>
