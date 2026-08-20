@@ -84,7 +84,7 @@ export function WidgetChat({
     return window.location.origin;
   }, []);
 
-  const supabaseRef = useRef<SupabaseClient | null>(null);
+  const [supabaseClient, setSupabaseClient] = useState<SupabaseClient | null>(null);
   const [messages, setMessages] = useState<WidgetMessage[]>([]);
   const [input, setInput] = useState("");
   const [isOpen, setIsOpen] = useState(mode === "inline" || mode === "fullscreen");
@@ -110,32 +110,30 @@ export function WidgetChat({
     return vid;
   }, []);
 
-  // 初始化 Supabase 客户端
+  // 初始化：等 config 就绪 → 创建 client → 加载/创建会话（一个 effect 完成）
   useEffect(() => {
-    if (config) {
+    if (!config) return;
+
+    let supabase: SupabaseClient;
+    try {
       if (typeof window !== "undefined") {
         window.__SUPABASE_CONFIG__ = { url: config.url, anonKey: config.anonKey };
       }
-      try {
-        supabaseRef.current = getSupabaseBrowserClient();
-      } catch (e) {
-        console.error("Supabase init failed:", e);
-        setInitError("无法连接到服务器，请稍后重试");
-        setIsLoading(false);
-      }
+      supabase = getSupabaseBrowserClient();
+      setSupabaseClient(supabase);
+    } catch (e) {
+      console.error("[WidgetChat] Supabase init failed:", e);
+      setInitError("无法连接到服务器，请稍后重试");
+      setIsLoading(false);
+      return;
     }
-  }, [config]);
 
-  // 加载或创建会话
-  useEffect(() => {
-    if (!supabaseRef.current) return;
-    const supabase = supabaseRef.current;
     const visitorId = getOrCreateVisitorId();
     let cancelled = false;
-    // 15秒超时保护，避免网络/权限异常时永远 loading
+    // 15秒超时保护
     const timeoutTimer = setTimeout(() => {
       if (!cancelled) {
-        console.error("初始化超时");
+        console.error("[WidgetChat] 初始化超时");
         setInitError("连接超时，请检查网络后重试");
         setIsLoading(false);
       }
@@ -144,7 +142,7 @@ export function WidgetChat({
     (async () => {
       try {
         console.log("[WidgetChat] 开始初始化...");
-        // 先做一次轻量探活，快速暴露网络/RLS 问题
+        // 先做一次轻量探活
         const probe = await supabase.from("customers").select("id").limit(1);
         if (probe.error) {
           throw new Error(`数据库访问失败: ${probe.error.message}`);
@@ -176,12 +174,10 @@ export function WidgetChat({
         if (existingCust) {
           custId = existingCust.id;
           custName = existingCust.name || "";
-          // 若 URL 带了 name 且库里还是"访客xxx"，更新一下
           if (params.name && (!custName || custName.startsWith("访客"))) {
             await supabase.from("customers").update({ name: params.name }).eq("id", custId);
             custName = params.name;
           }
-          // 若 URL 带了 phone 但库里没 phone，补上
           if (params.phone && !existingCust.phone) {
             await supabase.from("customers").update({ phone: params.phone }).eq("id", custId);
           }
@@ -265,43 +261,43 @@ export function WidgetChat({
         setUnreadCount(msgList.filter((m) => m.sender_type !== "customer" && !m.is_read).length);
         console.log("[WidgetChat] 历史消息:", msgList.length, "条");
 
-          // 如果是新会话且没有任何历史消息，插入欢迎语
-          if (msgList.length === 0 && isNewConversation) {
-            const welcomeText = custName && !custName.startsWith("访客")
-              ? `您好，${custName}！😊 我是课程顾问小艾，很高兴为您服务。\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`
-              : `您好呀~我是课程顾问小艾 😊\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`;
-            const { error: welcomeErr } = await supabase.from("messages").insert({
-              conversation_id: convId,
-              customer_id: custId,
-              sender_type: "ai",
-              sender_name: "小艾",
-              message_type: "text",
-              content: welcomeText,
-              ai_confidence: 100,
-              ai_source: "welcome",
-              is_read: true,
-            });
-            if (welcomeErr) {
-              console.error("欢迎语插入失败(非致命):", welcomeErr);
-            } else {
-              setMessages([
-                {
-                  id: "welcome-local",
-                  conversation_id: convId,
-                  customer_id: custId,
-                  sender_type: "ai",
-                  sender_name: "小艾",
-                  message_type: "text",
-                  content: welcomeText,
-                  image_url: null,
-                  ai_confidence: 100,
-                  ai_source: "welcome",
-                  is_read: true,
-                  created_at: new Date().toISOString(),
-                } as WidgetMessage,
-              ]);
-            }
+        // 如果是新会话且没有任何历史消息，插入欢迎语
+        if (msgList.length === 0 && isNewConversation) {
+          const welcomeText = custName && !custName.startsWith("访客")
+            ? `您好，${custName}！😊 我是课程顾问小艾，很高兴为您服务。\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`
+            : `您好呀~我是课程顾问小艾 😊\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`;
+          const { error: welcomeErr } = await supabase.from("messages").insert({
+            conversation_id: convId,
+            customer_id: custId,
+            sender_type: "ai",
+            sender_name: "小艾",
+            message_type: "text",
+            content: welcomeText,
+            ai_confidence: 100,
+            ai_source: "welcome",
+            is_read: true,
+          });
+          if (welcomeErr) {
+            console.error("欢迎语插入失败(非致命):", welcomeErr);
+          } else {
+            setMessages([
+              {
+                id: "welcome-local",
+                conversation_id: convId,
+                customer_id: custId,
+                sender_type: "ai",
+                sender_name: "小艾",
+                message_type: "text",
+                content: welcomeText,
+                image_url: null,
+                ai_confidence: 100,
+                ai_source: "welcome",
+                is_read: true,
+                created_at: new Date().toISOString(),
+              } as WidgetMessage,
+            ]);
           }
+        }
         console.log("[WidgetChat] 初始化完成");
         clearTimeout(timeoutTimer);
         setIsLoading(false);
@@ -321,12 +317,12 @@ export function WidgetChat({
       clearTimeout(timeoutTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabaseRef.current]);
+  }, [config]);
 
   // 实时订阅
   useEffect(() => {
-    if (!supabaseRef.current || !conversationId) return;
-    const supabase = supabaseRef.current;
+    if (!supabaseClient || !conversationId) return;
+    const supabase = supabaseClient;
 
     const channel = supabase
       .channel(`widget_msgs_${conversationId}`)
@@ -364,9 +360,9 @@ export function WidgetChat({
   }, [conversationId, isOpen]);
 
   useEffect(() => {
-    if (isOpen && unreadCount > 0 && supabaseRef.current && conversationId) {
+    if (isOpen && unreadCount > 0 && supabaseClient && conversationId) {
       setUnreadCount(0);
-      supabaseRef.current
+      supabaseClient
         .from("messages")
         .update({ is_read: true })
         .eq("conversation_id", conversationId)
@@ -409,12 +405,12 @@ export function WidgetChat({
 
   const saveNameAndClose = async () => {
     const name = nameInput.trim();
-    if (!name || !customerId || !supabaseRef.current) {
+    if (!name || !customerId || !supabaseClient) {
       setShowNamePrompt(false);
       return;
     }
     try {
-      await supabaseRef.current.from("customers").update({ name }).eq("id", customerId);
+      await supabaseClient.from("customers").update({ name }).eq("id", customerId);
       setCustomerName(name);
     } catch (e) {
       console.error(e);
@@ -424,13 +420,13 @@ export function WidgetChat({
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || isSending || !supabaseRef.current || !conversationId || !customerId) return;
+    if (!text || isSending || !supabaseClient || !conversationId || !customerId) return;
 
     setIsSending(true);
     setInput("");
     try {
       // 1. 客户消息写入数据库
-      const { error } = await supabaseRef.current.from("messages").insert({
+      const { error } = await supabaseClient.from("messages").insert({
         conversation_id: conversationId,
         customer_id: customerId,
         sender_type: "customer",
@@ -442,7 +438,7 @@ export function WidgetChat({
       if (error) throw error;
 
       // 2. 更新客户最后消息
-      await supabaseRef.current
+      await supabaseClient
         .from("customers")
         .update({
           last_message_preview: text.slice(0, 100),
