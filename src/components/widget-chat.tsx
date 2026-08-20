@@ -328,6 +328,11 @@ export function WidgetChat({
           prev.map((m) => (m.id === tempId ? (data.message as WidgetMessage) : m))
         );
       }
+      // 直接使用 API 返回的 AI 消息（不依赖 Realtime，避免 WebSocket 未连接时看不到回复）
+      if (data.aiMessage) {
+        const aiMsg = data.aiMessage as WidgetMessage;
+        setMessages((prev) => (prev.some((m) => m.id === aiMsg.id) ? prev : [...prev, aiMsg]));
+      }
     } catch (err) {
       console.error("发送失败:", err);
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
