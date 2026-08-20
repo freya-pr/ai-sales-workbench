@@ -110,10 +110,11 @@ export function WidgetChat({
     return vid;
   }, []);
 
-  // 初始化：等 config 就绪 → 创建 client → 加载/创建会话（一个 effect 完成）
+  // 初始化：等 config 就绪 → 调用 /api/widget/session 完成客户/会话创建（绕过 RLS）
   useEffect(() => {
     if (!config) return;
 
+    // 初始化 Supabase 客户端（仅用于 Realtime 订阅，不做写操作）
     let supabase: SupabaseClient;
     try {
       if (typeof window !== "undefined") {
@@ -130,7 +131,6 @@ export function WidgetChat({
 
     const visitorId = getOrCreateVisitorId();
     let cancelled = false;
-    // 15秒超时保护
     const timeoutTimer = setTimeout(() => {
       if (!cancelled) {
         console.error("[WidgetChat] 初始化超时");
@@ -141,164 +141,34 @@ export function WidgetChat({
 
     (async () => {
       try {
-        console.log("[WidgetChat] 开始初始化...");
-        // 先做一次轻量探活
-        const probe = await supabase.from("customers").select("id").limit(1);
-        if (probe.error) {
-          throw new Error(`数据库访问失败: ${probe.error.message}`);
-        }
-        console.log("[WidgetChat] 数据库探活成功");
-
-        // 若 URL 带了 phone，优先按 phone 查
-        let existingCust: { id: string; name: string; phone: string | null; wechat_id: string | null } | null = null;
-        if (params.phone) {
-          const r = await supabase
-            .from("customers")
-            .select("id, name, phone, wechat_id")
-            .eq("phone", params.phone)
-            .maybeSingle();
-          if (r.data) existingCust = r.data;
-        }
-        // 再按 visitorId 查
-        if (!existingCust) {
-          const r = await supabase
-            .from("customers")
-            .select("id, name, phone, wechat_id")
-            .eq("wechat_id", visitorId)
-            .maybeSingle();
-          if (r.data) existingCust = r.data;
-        }
-
-        let custId: string;
-        let custName: string = "";
-        if (existingCust) {
-          custId = existingCust.id;
-          custName = existingCust.name || "";
-          if (params.name && (!custName || custName.startsWith("访客"))) {
-            await supabase.from("customers").update({ name: params.name }).eq("id", custId);
-            custName = params.name;
-          }
-          if (params.phone && !existingCust.phone) {
-            await supabase.from("customers").update({ phone: params.phone }).eq("id", custId);
-          }
-        } else {
-          custName = params.name || `访客${visitorId.slice(-4)}`;
-          const { data: newCust, error: custErr } = await supabase
-            .from("customers")
-            .insert({
-              name: custName,
-              phone: params.phone || null,
-              wechat_id: visitorId,
-              source: params.ref || "widget",
-              intent_level: "B",
-              follow_up_status: "pending",
-              ai_mode: true,
-              unread_count: 0,
-              urgency: 2,
-              last_message_preview: "访客进入咨询",
-            })
-            .select("id, name")
-            .single();
-          if (custErr) throw new Error(`创建客户失败: ${custErr.message} (${custErr.code})`);
-          if (!newCust) throw new Error("创建客户返回空数据");
-          custId = newCust.id;
-          custName = newCust.name || custName;
+        console.log("[WidgetChat] 开始初始化，调用 /api/widget/session...");
+        const res = await fetch(`${apiBase}/api/widget/session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            visitorId,
+            name: params.name || null,
+            phone: params.phone || null,
+            ref: params.ref || "widget",
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          throw new Error(data.error || `HTTP ${res.status}`);
         }
 
         if (cancelled) return;
-        console.log("[WidgetChat] 客户就绪:", custId, custName);
-        setCustomerId(custId);
-        setCustomerName(custName);
-        if (!params.name && custName && custName.startsWith("访客")) {
+        console.log("[WidgetChat] 会话就绪:", data.customerId, data.conversationId);
+
+        setCustomerId(data.customerId);
+        setCustomerName(data.customerName);
+        setConversationId(data.conversationId);
+        setMessages(data.messages || []);
+
+        if (!params.name && data.customerName && data.customerName.startsWith("访客")) {
           setShowNamePrompt(true);
         }
 
-        // 查找活跃会话
-        const { data: convs, error: convListErr } = await supabase
-          .from("conversations")
-          .select("id")
-          .eq("customer_id", custId)
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(1);
-        if (convListErr) throw new Error(`查询会话失败: ${convListErr.message}`);
-
-        let convId: string;
-        let isNewConversation = false;
-        if (convs && convs.length > 0) {
-          convId = convs[0].id;
-        } else {
-          const { data: newConv, error: convErr } = await supabase
-            .from("conversations")
-            .insert({
-              customer_id: custId,
-              status: "active",
-              title: "在线咨询",
-              ai_participation: "full",
-            })
-            .select("id")
-            .single();
-          if (convErr) throw new Error(`创建会话失败: ${convErr.message} (${convErr.code})`);
-          if (!newConv) throw new Error("创建会话返回空数据");
-          convId = newConv.id;
-          isNewConversation = true;
-        }
-        if (cancelled) return;
-        console.log("[WidgetChat] 会话就绪:", convId, isNewConversation ? "(新)" : "(已有)");
-        setConversationId(convId);
-
-        // 加载历史消息
-        const { data: msgs, error: msgErr } = await supabase
-          .from("messages")
-          .select("*")
-          .eq("conversation_id", convId)
-          .order("created_at", { ascending: true })
-          .limit(100);
-        if (msgErr) throw new Error(`加载消息失败: ${msgErr.message}`);
-        if (cancelled) return;
-        const msgList = msgs || [];
-        setMessages(msgList);
-        setUnreadCount(msgList.filter((m) => m.sender_type !== "customer" && !m.is_read).length);
-        console.log("[WidgetChat] 历史消息:", msgList.length, "条");
-
-        // 如果是新会话且没有任何历史消息，插入欢迎语
-        if (msgList.length === 0 && isNewConversation) {
-          const welcomeText = custName && !custName.startsWith("访客")
-            ? `您好，${custName}！😊 我是课程顾问小艾，很高兴为您服务。\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`
-            : `您好呀~我是课程顾问小艾 😊\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`;
-          const { error: welcomeErr } = await supabase.from("messages").insert({
-            conversation_id: convId,
-            customer_id: custId,
-            sender_type: "ai",
-            sender_name: "小艾",
-            message_type: "text",
-            content: welcomeText,
-            ai_confidence: 100,
-            ai_source: "welcome",
-            is_read: true,
-          });
-          if (welcomeErr) {
-            console.error("欢迎语插入失败(非致命):", welcomeErr);
-          } else {
-            setMessages([
-              {
-                id: "welcome-local",
-                conversation_id: convId,
-                customer_id: custId,
-                sender_type: "ai",
-                sender_name: "小艾",
-                message_type: "text",
-                content: welcomeText,
-                image_url: null,
-                ai_confidence: 100,
-                ai_source: "welcome",
-                is_read: true,
-                created_at: new Date().toISOString(),
-              } as WidgetMessage,
-            ]);
-          }
-        }
-        console.log("[WidgetChat] 初始化完成");
         clearTimeout(timeoutTimer);
         setIsLoading(false);
       } catch (err) {
@@ -360,17 +230,11 @@ export function WidgetChat({
   }, [conversationId, isOpen]);
 
   useEffect(() => {
-    if (isOpen && unreadCount > 0 && supabaseClient && conversationId) {
+    // Widget 始终打开，直接清空未读计数（标记已读由后端在会话加载时处理）
+    if (isOpen && unreadCount > 0) {
       setUnreadCount(0);
-      supabaseClient
-        .from("messages")
-        .update({ is_read: true })
-        .eq("conversation_id", conversationId)
-        .eq("is_read", false)
-        .neq("sender_type", "customer")
-        .then();
     }
-  }, [isOpen, unreadCount, conversationId]);
+  }, [isOpen, unreadCount]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -405,12 +269,16 @@ export function WidgetChat({
 
   const saveNameAndClose = async () => {
     const name = nameInput.trim();
-    if (!name || !customerId || !supabaseClient) {
+    if (!name || !customerId) {
       setShowNamePrompt(false);
       return;
     }
     try {
-      await supabaseClient.from("customers").update({ name }).eq("id", customerId);
+      await fetch(`${apiBase}/api/widget/profile`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId, name }),
+      });
       setCustomerName(name);
     } catch (e) {
       console.error(e);
@@ -420,56 +288,49 @@ export function WidgetChat({
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || isSending || !supabaseClient || !conversationId || !customerId) return;
+    if (!text || isSending || !conversationId || !customerId) return;
 
     setIsSending(true);
     setInput("");
+
+    // 乐观显示客户消息（后端写入成功后 Realtime 可能重复推送，用 id 去重）
+    const tempId = `temp-${Date.now()}`;
+    const tempMsg: WidgetMessage = {
+      id: tempId,
+      sender_type: "customer",
+      sender_name: customerName,
+      content: text,
+      message_type: "text",
+      image_url: null,
+      is_read: true,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, tempMsg]);
+
     try {
-      // 1. 客户消息写入数据库
-      const { error } = await supabaseClient.from("messages").insert({
-        conversation_id: conversationId,
-        customer_id: customerId,
-        sender_type: "customer",
-        sender_name: customerName || null,
-        message_type: "text",
-        content: text,
-        is_read: true,
-      });
-      if (error) throw error;
-
-      // 2. 更新客户最后消息
-      await supabaseClient
-        .from("customers")
-        .update({
-          last_message_preview: text.slice(0, 100),
-          last_message_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", customerId);
-
-      // 3. 调用后端 AI 自动回复（AI 消息由后端写入，前端通过 Realtime 接收）
-      const recentHistory = messages
-        .filter((m) => m.sender_type === "customer" || m.sender_type === "ai")
-        .slice(-6)
-        .map((m) => ({
-          role: (m.sender_type === "customer" ? "user" : "assistant") as "user" | "assistant",
-          content: m.content || "",
-        }));
-
-      fetch(`${apiBase}/api/ai-reply`, {
+      const res = await fetch(`${apiBase}/api/widget/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           conversationId,
           customerId,
-          message: text,
-          history: recentHistory,
+          customerName,
+          content: text,
         }),
-      }).catch((err) => {
-        console.error("AI 回复请求失败:", err);
       });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      // 用真实消息替换临时消息
+      if (data.message) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? (data.message as WidgetMessage) : m))
+        );
+      }
     } catch (err) {
       console.error("发送失败:", err);
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setInput(text);
       alert("发送失败，请检查网络后重试");
     } finally {

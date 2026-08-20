@@ -1,20 +1,27 @@
 #!/usr/bin/env bash
-# 临时隐藏需要 Node.js 服务端的 API 路由，构建静态版本后自动恢复
+# 静态构建（GitHub Pages）：临时隐藏所有需要 Node.js 运行时的 API 路由
+# Vercel 构建不走此脚本，保留全部 API 路由
 set -e
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-WECOM_DIR="$ROOT/src/app/api/wecom"
-HIDDEN_DIR="$ROOT/.wecom-hidden"
+API_DIR="$ROOT/src/app/api"
+HIDDEN_DIR="$ROOT/.api-hidden"
 
-if [ -d "$WECOM_DIR" ]; then
-  mv "$WECOM_DIR" "$HIDDEN_DIR"
-  echo "[static-build] hid src/app/api/wecom"
+if [ -d "$API_DIR" ]; then
+  mv "$API_DIR" "$HIDDEN_DIR"
+  echo "[static-build] hid src/app/api (all routes)"
+  # 占位：避免 import 引用报错（静态版不需要 API）
+  mkdir -p "$API_DIR"
+  cat > "$API_DIR/.gitkeep" <<'EOF'
+# Hidden during static build. Do not commit.
+EOF
 fi
 
 cleanup() {
   if [ -d "$HIDDEN_DIR" ]; then
-    mv "$HIDDEN_DIR" "$WECOM_DIR"
-    echo "[static-build] restored src/app/api/wecom"
+    rm -rf "$API_DIR"
+    mv "$HIDDEN_DIR" "$API_DIR"
+    echo "[static-build] restored src/app/api"
   fi
 }
 trap cleanup EXIT INT TERM
@@ -25,7 +32,7 @@ rm -rf .next out
 pnpm next build
 
 # 后处理：GitHub Pages 对无扩展名文件可能返回 octet-stream
-# 把 supabase-config 复制一份 .json 版本
+# 把 supabase-config 复制一份 .json 版本（如果静态版仍有此路由）
 if [ -f "out/api/supabase-config" ]; then
   cp "out/api/supabase-config" "out/api/supabase-config.json"
   echo "[static-build] generated out/api/supabase-config.json"
