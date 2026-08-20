@@ -36,8 +36,14 @@ export function SupabaseConfigProvider({ children }: SupabaseConfigProviderProps
 
   useEffect(() => {
     // 优先使用构建时注入的公开环境变量（静态导出版本）
-    const builtinUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const builtinKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    // anon key 是公开的，硬编码兜底确保 widget 在任何环境都能连接
+    const FALLBACK = {
+      url: 'https://br-prime-rook-1c727bd5.supabase2.aidap-global.cn-beijing.volces.com',
+      anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNjc2NjE1NjIsInJvbGUiOiJhbm9uIn0.2bOeBjxKmzUh307lVi2hRtNqCH4LMb949lYaIDoq3uE',
+    };
+    const builtinUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK.url;
+    const builtinKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK.anonKey;
 
     if (builtinUrl && builtinKey) {
       const cfg = { url: builtinUrl, anonKey: builtinKey };

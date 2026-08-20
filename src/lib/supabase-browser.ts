@@ -14,9 +14,17 @@ const SUPABASE_CONFIG_READY_EVENT = 'supabase-config-ready';
 let browserClient: SupabaseClient | null = null;
 
 // 构建时注入的公开配置（静态导出兜底）
+// anon key 本身是公开的（会随前端 bundle 分发），这里硬编码作为最后兜底，
+// 避免 Vercel/GitHub Pages 环境变量配置错误时 widget 彻底无法连接
+const FALLBACK_PUBLIC_CONFIG = {
+  url: 'https://br-prime-rook-1c727bd5.supabase2.aidap-global.cn-beijing.volces.com',
+  anonKey:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNjc2NjE1NjIsInJvbGUiOiJhbm9uIn0.2bOeBjxKmzUh307lVi2hRtNqCH4LMb949lYaIDoq3uE',
+};
+
 const BUILTIN_PUBLIC_CONFIG = {
-  url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-  anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+  url: process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_PUBLIC_CONFIG.url,
+  anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_PUBLIC_CONFIG.anonKey,
 };
 
 function ensureConfigOnWindow(): boolean {
