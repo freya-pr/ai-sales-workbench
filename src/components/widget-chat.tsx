@@ -19,11 +19,16 @@ export interface WidgetChatProps {
 
 interface WidgetMessage {
   id: string;
+  conversation_id?: string;
+  customer_id?: string;
   sender_type: string;
   sender_name: string | null;
   content: string | null;
   message_type: string;
   image_url: string | null;
+  ai_confidence?: number | null;
+  ai_source?: string | null;
+  is_read?: boolean | null;
   created_at: string;
 }
 
@@ -138,13 +143,16 @@ export function WidgetChat({
 
     (async () => {
       try {
+        console.log("[WidgetChat] 开始初始化...");
         // 先做一次轻量探活，快速暴露网络/RLS 问题
         const probe = await supabase.from("customers").select("id").limit(1);
         if (probe.error) {
           throw new Error(`数据库访问失败: ${probe.error.message}`);
         }
+        console.log("[WidgetChat] 数据库探活成功");
+
         // 若 URL 带了 phone，优先按 phone 查
-        let existingCust = null;
+        let existingCust: { id: string; name: string; phone: string | null; wechat_id: string | null } | null = null;
         if (params.phone) {
           const r = await supabase
             .from("customers")
@@ -164,12 +172,12 @@ export function WidgetChat({
         }
 
         let custId: string;
-        let custName: string;
+        let custName: string = "";
         if (existingCust) {
           custId = existingCust.id;
-          custName = existingCust.name;
+          custName = existingCust.name || "";
           // 若 URL 带了 name 且库里还是"访客xxx"，更新一下
-          if (params.name && existingCust.name.startsWith("访客")) {
+          if (params.name && (!custName || custName.startsWith("访客"))) {
             await supabase.from("customers").update({ name: params.name }).eq("id", custId);
             custName = params.name;
           }
@@ -195,25 +203,29 @@ export function WidgetChat({
             })
             .select("id, name")
             .single();
-          if (custErr) throw custErr;
+          if (custErr) throw new Error(`创建客户失败: ${custErr.message} (${custErr.code})`);
+          if (!newCust) throw new Error("创建客户返回空数据");
           custId = newCust.id;
+          custName = newCust.name || custName;
         }
 
         if (cancelled) return;
+        console.log("[WidgetChat] 客户就绪:", custId, custName);
         setCustomerId(custId);
         setCustomerName(custName);
-        if (!params.name && custName.startsWith("访客")) {
+        if (!params.name && custName && custName.startsWith("访客")) {
           setShowNamePrompt(true);
         }
 
         // 查找活跃会话
-        const { data: convs } = await supabase
+        const { data: convs, error: convListErr } = await supabase
           .from("conversations")
           .select("id")
           .eq("customer_id", custId)
           .eq("status", "active")
           .order("created_at", { ascending: false })
           .limit(1);
+        if (convListErr) throw new Error(`查询会话失败: ${convListErr.message}`);
 
         let convId: string;
         let isNewConversation = false;
@@ -230,31 +242,35 @@ export function WidgetChat({
             })
             .select("id")
             .single();
-          if (convErr) throw convErr;
+          if (convErr) throw new Error(`创建会话失败: ${convErr.message} (${convErr.code})`);
+          if (!newConv) throw new Error("创建会话返回空数据");
           convId = newConv.id;
           isNewConversation = true;
         }
         if (cancelled) return;
+        console.log("[WidgetChat] 会话就绪:", convId, isNewConversation ? "(新)" : "(已有)");
         setConversationId(convId);
 
         // 加载历史消息
-        const { data: msgs } = await supabase
+        const { data: msgs, error: msgErr } = await supabase
           .from("messages")
           .select("*")
           .eq("conversation_id", convId)
           .order("created_at", { ascending: true })
           .limit(100);
+        if (msgErr) throw new Error(`加载消息失败: ${msgErr.message}`);
         if (cancelled) return;
-        if (msgs) {
-          setMessages(msgs);
-          setUnreadCount(msgs.filter((m) => m.sender_type !== "customer" && !m.is_read).length);
+        const msgList = msgs || [];
+        setMessages(msgList);
+        setUnreadCount(msgList.filter((m) => m.sender_type !== "customer" && !m.is_read).length);
+        console.log("[WidgetChat] 历史消息:", msgList.length, "条");
 
           // 如果是新会话且没有任何历史消息，插入欢迎语
-          if (msgs.length === 0 && isNewConversation) {
+          if (msgList.length === 0 && isNewConversation) {
             const welcomeText = custName && !custName.startsWith("访客")
               ? `您好，${custName}！😊 我是课程顾问小艾，很高兴为您服务。\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`
               : `您好呀~我是课程顾问小艾 😊\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`;
-            await supabase.from("messages").insert({
+            const { error: welcomeErr } = await supabase.from("messages").insert({
               conversation_id: convId,
               customer_id: custId,
               sender_type: "ai",
@@ -265,13 +281,36 @@ export function WidgetChat({
               ai_source: "welcome",
               is_read: true,
             });
+            if (welcomeErr) {
+              console.error("欢迎语插入失败(非致命):", welcomeErr);
+            } else {
+              setMessages([
+                {
+                  id: "welcome-local",
+                  conversation_id: convId,
+                  customer_id: custId,
+                  sender_type: "ai",
+                  sender_name: "小艾",
+                  message_type: "text",
+                  content: welcomeText,
+                  image_url: null,
+                  ai_confidence: 100,
+                  ai_source: "welcome",
+                  is_read: true,
+                  created_at: new Date().toISOString(),
+                } as WidgetMessage,
+              ]);
+            }
           }
-        }
+        console.log("[WidgetChat] 初始化完成");
+        clearTimeout(timeoutTimer);
         setIsLoading(false);
       } catch (err) {
-        console.error("初始化失败:", err);
+        console.error("[WidgetChat] 初始化失败:", err);
         if (!cancelled) {
-          setInitError("连接失败，请刷新页面重试");
+          const msg = err instanceof Error ? err.message : "未知错误";
+          setInitError(`连接失败：${msg}。请刷新页面重试`);
+          clearTimeout(timeoutTimer);
           setIsLoading(false);
         }
       }
