@@ -68,17 +68,29 @@ except Exception as e:
   }
 }
 
+// 硬编码兜底：Vercel 环境变量缺失时使用（anon key 是公开的，可在服务端安全使用）
+const FALLBACK_CREDS = {
+  url: 'https://br-prime-rook-1c727bd5.supabase2.aidap-global.cn-beijing.volces.com',
+  anonKey:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjMzNjc2NjE1NjIsInJvbGUiOiJhbm9uIn0.2bOeBjxKmzUh307lVi2hRtNqCH4LMb949lYaIDoq3uE',
+};
+
 function getSupabaseCredentials(): SupabaseCredentials {
   loadEnv();
 
-  const url = process.env.COZE_SUPABASE_URL;
-  const anonKey = process.env.COZE_SUPABASE_ANON_KEY;
+  const url =
+    process.env.COZE_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    FALLBACK_CREDS.url;
+  const anonKey =
+    process.env.COZE_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    FALLBACK_CREDS.anonKey;
 
-  if (!url) {
-    throw new Error('COZE_SUPABASE_URL is not set');
-  }
-  if (!anonKey) {
-    throw new Error('COZE_SUPABASE_ANON_KEY is not set');
+  if (!url || !anonKey) {
+    throw new Error('Supabase credentials not configured');
   }
 
   return { url, anonKey };
@@ -86,7 +98,12 @@ function getSupabaseCredentials(): SupabaseCredentials {
 
 function getSupabaseServiceRoleKey(): string | undefined {
   loadEnv();
-  return process.env.COZE_SUPABASE_SERVICE_ROLE_KEY;
+  return (
+    process.env.COZE_SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_KEY ||
+    undefined
+  );
 }
 
 function getSupabaseClient(token?: string): SupabaseClient {

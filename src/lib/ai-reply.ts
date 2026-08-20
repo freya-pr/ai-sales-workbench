@@ -156,11 +156,11 @@ export function extractTagsFromMessage(text: string): { tag_type: string; tag_va
     tags.push({ tag_type: "intent_level", tag_value: "B", confidence: 0.5 });
   }
 
-  // 孩子年龄
-  const ageMatch = text.match(/(\d)\s*岁/);
+  // 孩子年龄（0-18岁）
+  const ageMatch = text.match(/(\d{1,2})\s*岁/);
   if (ageMatch) {
     const age = parseInt(ageMatch[1]);
-    if (age >= 3 && age <= 6) {
+    if (age >= 0 && age <= 18) {
       tags.push({ tag_type: "child_age", tag_value: `${age}岁`, confidence: 0.95 });
     }
   }
