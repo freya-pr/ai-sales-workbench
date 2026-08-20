@@ -446,7 +446,7 @@ export function WidgetChat({
                 <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-600" />
                 <p>
                   您好{customerName && !customerName.startsWith("访客") ? `，${customerName}` : ""}！
-                  我是AI课程顾问，可以帮您了解3-6岁学龄前教育课程、预约试听。有任何问题随时问我~
+                  我是AI课程顾问，可以帮您了解 0-18 岁课程、预约 liu 老师体验课、查询价格时间。有任何问题随时问我~
                 </p>
               </div>
             </div>

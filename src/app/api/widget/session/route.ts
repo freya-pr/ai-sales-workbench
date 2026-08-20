@@ -133,8 +133,8 @@ export async function POST(request: Request) {
     // 4. 新会话插入欢迎语
     if (messages.length === 0 && isNewConversation) {
       const welcomeText = customerName && !customerName.startsWith("访客")
-        ? `您好，${customerName}！😊 我是课程顾问小艾，很高兴为您服务。\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`
-        : `您好呀~我是课程顾问小艾 😊\n\n我可以帮您：\n• 了解3-6岁学龄前课程\n• 预约免费学情测评\n• 查询课程价格和时间\n\n请问有什么可以帮您的？`;
+        ? `您好，${customerName}！😊 我是课程顾问小艾，很高兴为您服务。\n\n我可以帮您：\n• 了解 0-18 岁课程安排\n• 预约 liu 老师体验课（99元3节）\n• 查询价格和上课时间\n\n请问有什么可以帮您的？`
+        : `您好呀~我是课程顾问小艾 😊\n\n我可以帮您：\n• 了解 0-18 岁课程安排\n• 预约 liu 老师体验课（99元3节）\n• 查询价格和上课时间\n\n请问有什么可以帮您的？`;
 
       const { data: welcomeMsg, error: welcomeErr } = await supabase
         .from("messages")

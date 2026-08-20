@@ -15,7 +15,7 @@ function ChatLandingInner() {
           </div>
           <div>
             <div className="text-sm font-bold text-slate-800">智能规划</div>
-            <div className="text-[10px] text-slate-400">3-6岁学龄前家庭教育</div>
+            <div className="text-[10px] text-slate-400">0-18岁全年龄段家庭教育</div>
           </div>
         </div>
         <div className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
@@ -32,19 +32,19 @@ function ChatLandingInner() {
             AI 智能规划，1对1专属顾问
           </div>
           <h1 className="text-2xl font-bold leading-tight text-slate-800 sm:text-3xl">
-            为 3-6 岁孩子
+            为 0-18 岁孩子
             <br />
             定制科学的成长方案
           </h1>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-600">
-            从语言启蒙、思维训练到阅读习惯，结合孩子年龄与性格特点，规划个性化学习路径。现在咨询可免费领取试听课程。
+            覆盖早期启蒙到中学阶段，每节 60 分钟，每周 3 次，liu 老师系统授课。现在咨询可预约 99 元 3 节体验课。
           </p>
 
           <div className="mt-6 space-y-3">
             {[
-              { icon: Sparkles, title: "AI 学情诊断", desc: "3分钟生成专属成长报告" },
-              { icon: GraduationCap, title: "名师1对1", desc: "资深教育顾问全程陪伴" },
-              { icon: ShieldCheck, title: "满意保障", desc: "试听不满意全额退款" },
+              { icon: Sparkles, title: "系统课程", desc: "99节正式课，循序渐进" },
+              { icon: GraduationCap, title: "liu 老师亲授", desc: "每节60分钟，稳定陪伴" },
+              { icon: ShieldCheck, title: "先体验后决定", desc: "99元3节体验课" },
             ].map((item) => (
               <div key={item.title} className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600">
@@ -59,9 +59,9 @@ function ChatLandingInner() {
           </div>
 
           <div className="mt-8 rounded-xl border border-cyan-100 bg-cyan-50/40 p-4">
-            <div className="mb-1 text-[12px] font-semibold text-cyan-800">🎁 本月限时福利</div>
+            <div className="mb-1 text-[12px] font-semibold text-cyan-800">🎁 新学员福利</div>
             <p className="text-[12px] leading-relaxed text-cyan-900/80">
-              首次咨询即送 <strong>99元4节体验课</strong>，包含 1对1 学情测评 + 专属成长规划报告。
+              <strong>99 元 3 节体验课</strong>，由 liu 老师亲自授课，先体验再决定是否报正式课。
             </p>
           </div>
         </section>
